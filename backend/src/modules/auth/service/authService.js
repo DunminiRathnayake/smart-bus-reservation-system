@@ -77,7 +77,9 @@ class AuthService {
     // 1. Check if email already exists
     const emailExists = await userRepository.exists(userData.email);
     if (emailExists) {
-      throw new Error('Email is already registered');
+      const error = new Error('Email is already registered');
+      error.statusCode = 400;
+      throw error;
     }
 
     // 2. Hash password
@@ -106,18 +108,24 @@ class AuthService {
     // 1. Retrieve user by email (explicitly selecting password)
     const user = await userRepository.findByEmail(email, true);
     if (!user) {
-      throw new Error('Invalid email or password');
+      const error = new Error('Invalid email or password');
+      error.statusCode = 401;
+      throw error;
     }
 
     // 2. Check if user is active
     if (!user.isActive) {
-      throw new Error('User account is deactivated');
+      const error = new Error('User account is deactivated');
+      error.statusCode = 403;
+      throw error;
     }
 
     // 3. Verify password
     const isMatch = await this.comparePassword(password, user.password);
     if (!isMatch) {
-      throw new Error('Invalid email or password');
+      const error = new Error('Invalid email or password');
+      error.statusCode = 401;
+      throw error;
     }
 
     // 4. Generate token
