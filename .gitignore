@@ -26,6 +26,9 @@ Thumbs.db
 # -------------------------------------------------------------------------
 # JVM / Java / Spring Boot Backend
 # -------------------------------------------------------------------------
+backend/node_modules/
+backend/.env
+
 backend/**/target/
 backend/**/*.class
 backend/out/

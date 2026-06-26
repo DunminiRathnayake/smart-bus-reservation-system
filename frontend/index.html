@@ -1,76 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartGo – Smart Bus Reservation & Management System</title>
-  <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
-
-  <!-- Dynamic Header injected by main.js -->
-  <header id="app-header" class="app-header"></header>
-
-  <!-- Hero Content -->
-  <main class="container">
-    <section class="hero-section">
-      <h1 class="hero-title">Your Smart Journey Starts Here</h1>
-      <p class="hero-subtitle">
-        Reserve bus seats instantly, complete secure mock checkouts, and retrieve digital QR tickets directly on your phone.
-      </p>
-    </section>
-
-    <!-- Route Search Card -->
-    <section class="search-card">
-      <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 24px;">Search Bus Routes</h2>
-      <form id="search-form" onsubmit="event.preventDefault();">
-        <div class="search-grid">
-          <div class="form-group">
-            <label for="from" class="form-label">From</label>
-            <input 
-              type="text" 
-              id="from" 
-              placeholder="Origin City (e.g. New York)" 
-              class="form-input"
-              required
-            >
-          </div>
-          <div class="form-group">
-            <label for="to" class="form-label">To</label>
-            <input 
-              type="text" 
-              id="to" 
-              placeholder="Destination City (e.g. Washington)" 
-              class="form-input"
-              required
-            >
-          </div>
-          <div class="form-group">
-            <label for="date" class="form-label">Date</label>
-            <input 
-              type="date" 
-              id="date" 
-              class="form-input"
-              required
-            >
-          </div>
-        </div>
-        <button 
-          type="button" 
-          onclick="alert('Bus Search is ready for implementation.')" 
-          class="btn btn-search"
-        >
-          Search Buses
-        </button>
-      </form>
-    </section>
-  </main>
-
-  <!-- Dynamic Footer injected by main.js -->
-  <footer id="app-footer" class="app-footer"></footer>
-
-  <!-- Scripts -->
-  <script src="js/api.js"></script>
-  <script src="js/main.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>frontend</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>

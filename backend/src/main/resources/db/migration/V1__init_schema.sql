@@ -1,3 +1,0 @@
--- SmartGo Baseline Schema Init Script
--- This migration script serves as the baseline configuration for future schema migrations.
--- Core database objects and tables will be declared in subsequent Flyway migrations.
