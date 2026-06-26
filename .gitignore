@@ -1,0 +1,81 @@
+# =========================================================================
+# SmartGo Monorepo Git Ignore Config
+# =========================================================================
+
+# Help - https://help.github.com/articles/ignoring-files/
+
+# -------------------------------------------------------------------------
+# OS / IDE specific
+# -------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# -------------------------------------------------------------------------
+# JVM / Java / Spring Boot Backend
+# -------------------------------------------------------------------------
+backend/**/target/
+backend/**/*.class
+backend/out/
+backend/.gradle/
+backend/build/
+backend/bin/
+
+# Spring Boot application configuration secrets
+backend/**/application-local.properties
+backend/**/application-dev.properties
+backend/**/application-prod.properties
+backend/**/*.log
+backend/**/*.sqlite
+
+# Maven Wrapper
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/mvnw
+backend/mvnw.cmd
+
+# Gradle Wrapper
+backend/gradlew
+backend/gradlew.cmd
+backend/gradle/wrapper/gradle-wrapper.jar
+
+# -------------------------------------------------------------------------
+# Node / Frontend (React + Vite)
+# -------------------------------------------------------------------------
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+frontend/.env
+frontend/.env.development
+frontend/.env.production
+frontend/.env.*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# Cypress/Playwright test reports
+frontend/cypress/screenshots/
+frontend/cypress/videos/
+frontend/playwright-report/
+frontend/test-results/
+
+# -------------------------------------------------------------------------
+# Database / Local Environment
+# -------------------------------------------------------------------------
+database/**/*.sql.bak
+database/**/*.log
+.env
+docker-compose.override.yml
