@@ -206,7 +206,14 @@ class RouteService {
       throw error;
     }
 
-    // TODO: Prevent deleting a Route if it has future schedules (Schedule module integration in Sprint 7)
+    // Prevent deleting a Route if it has future schedules
+    const scheduleRepository = require('../../schedule/repository/scheduleRepository');
+    const hasFutureSchedules = await scheduleRepository.hasFutureSchedulesForRoute(id);
+    if (hasFutureSchedules) {
+      const error = new Error('Cannot delete route as it has active future schedules assigned');
+      error.statusCode = 400;
+      throw error;
+    }
 
     return await routeRepository.update(id, {
       status: RouteStatus.INACTIVE,
