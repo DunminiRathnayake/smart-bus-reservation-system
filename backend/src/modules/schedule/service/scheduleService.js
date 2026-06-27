@@ -100,7 +100,13 @@ class ScheduleService {
       createdBy: createdById
     };
 
-    return await scheduleRepository.create(payload);
+    const schedule = await scheduleRepository.create(payload);
+
+    // Automatically generate seats for the schedule
+    const seatService = require('../../seat/service/seatService');
+    await seatService.generateSeats(schedule._id);
+
+    return schedule;
   }
 
   /**
