@@ -170,6 +170,10 @@ class PaymentService {
       })
     );
 
+    // Automatically generate ticket for the passenger
+    const ticketService = require('../../ticket/service/ticketService');
+    await ticketService.generateTicket(booking._id, payment._id, booking.userId);
+
     return updatedPayment;
   }
 

@@ -61,6 +61,7 @@ app.use('/api/v1/admin/bookings', bookingRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/admin/payments', paymentRoutes);
 app.use('/api/v1/tickets', ticketRoutes);
+app.use('/api/v1/admin/tickets', ticketRoutes);
 app.use('/api/v1/feedback', feedbackRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 
