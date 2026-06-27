@@ -5,6 +5,7 @@
 
 const mongoose = require('mongoose');
 const Roles = require('../../../constants/roles');
+const UserStatus = require('../../../constants/userStatus');
 
 const userSchema = new mongoose.Schema(
   {
@@ -16,7 +17,6 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: [true, 'Email is required'],
-      unique: true,
       lowercase: true,
       trim: true,
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please enter a valid email address']
@@ -40,15 +40,45 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Role is required'],
       default: Roles.PASSENGER
     },
-    isActive: {
-      type: Boolean,
-      default: true
+    status: {
+      type: String,
+      enum: {
+        values: Object.values(UserStatus),
+        message: 'Invalid status: {VALUE}'
+      },
+      required: [true, 'Status is required'],
+      default: UserStatus.ACTIVE
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    deletedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    deletedAt: {
+      type: Date,
+      default: null
     }
   },
   {
     timestamps: true,
     collection: 'users'
   }
+);
+
+// Partial unique index on email to allow duplicates only for soft-deleted users
+userSchema.index(
+  { email: 1 },
+  { unique: true, partialFilterExpression: { deletedAt: null } }
 );
 
 const User = mongoose.model('User', userSchema);

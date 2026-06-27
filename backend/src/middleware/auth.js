@@ -48,10 +48,10 @@ const authenticate = asyncHandler(async (req, res, next) => {
       });
     }
 
-    if (!user.isActive) {
+    if (user.status !== 'ACTIVE') {
       return res.status(403).json({
         success: false,
-        message: 'Access denied: User account is deactivated',
+        message: `Access denied: User account is ${user.status.toLowerCase()}`,
         data: null,
         errors: [{ field: 'authorization', message: 'Account suspended' }]
       });

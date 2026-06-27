@@ -114,8 +114,8 @@ class AuthService {
     }
 
     // 2. Check if user is active
-    if (!user.isActive) {
-      const error = new Error('User account is deactivated');
+    if (user.status !== 'ACTIVE') {
+      const error = new Error(`User account is ${user.status.toLowerCase()}`);
       error.statusCode = 403;
       throw error;
     }
