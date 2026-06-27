@@ -57,6 +57,7 @@ app.use('/api/v1/drivers', driverRoutes);
 app.use('/api/v1/schedules', seatRoutes);
 app.use('/api/v1/schedules', scheduleRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
+app.use('/api/v1/admin/bookings', bookingRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/tickets', ticketRoutes);
 app.use('/api/v1/feedback', feedbackRoutes);
