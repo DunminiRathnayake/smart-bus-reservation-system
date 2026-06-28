@@ -40,7 +40,8 @@ const PassengerLayout = () => {
     { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
     { label: 'Search Bus', path: '/search-bus', icon: <Search className="h-5 w-5" /> },
     { label: 'My Bookings', path: '/bookings', icon: <History className="h-5 w-5" /> },
-    { label: 'My Tickets', path: '/bookings', icon: <Ticket className="h-5 w-5" /> }, // Links to bookings lists for ticket actions
+    { label: 'My Tickets', path: '/tickets', icon: <Ticket className="h-5 w-5" /> },
+    { label: 'Notifications', path: '/notifications', icon: <Bell className="h-5 w-5" /> },
     { label: 'Profile', path: '/profile', icon: <User className="h-5 w-5" /> }
   ];
 

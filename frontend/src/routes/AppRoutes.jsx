@@ -18,6 +18,13 @@ import Register from '../pages/Register';
 import Dashboard from '../pages/Dashboard';
 import BookingHistory from '../pages/BookingHistory';
 import Profile from '../pages/Profile';
+import ScheduleDetails from '../pages/ScheduleDetails';
+import SeatSelection from '../pages/SeatSelection';
+import BookingReview from '../pages/BookingReview';
+import PaymentPage from '../pages/PaymentPage';
+import TicketDetails from '../pages/TicketDetails';
+import Tickets from '../pages/Tickets';
+import Notifications from '../pages/Notifications';
 
 // Admin pages
 import AdminDashboard from '../pages/AdminDashboard';
@@ -55,7 +62,15 @@ const AppRoutes = () => {
         <Route element={<ProtectedRoute allowedRoles={['ROLE_PASSENGER']} />}>
           <Route element={<PassengerLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/search-bus" element={<SearchBus />} />
+            <Route path="/schedules/:scheduleId" element={<ScheduleDetails />} />
+            <Route path="/schedules/:scheduleId/seats" element={<SeatSelection />} />
+            <Route path="/schedules/:scheduleId/book" element={<BookingReview />} />
+            <Route path="/schedules/:scheduleId/pay/:bookingId" element={<PaymentPage />} />
+            <Route path="/tickets/:ticketId" element={<TicketDetails />} />
             <Route path="/bookings" element={<BookingHistory />} />
+            <Route path="/tickets" element={<Tickets />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>
