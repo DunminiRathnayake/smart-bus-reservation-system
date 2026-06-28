@@ -1,14 +1,25 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import MainLayout from '../layouts/MainLayout';
+import PublicLayout from '../layouts/PublicLayout';
 import AuthLayout from '../layouts/AuthLayout';
+import PassengerLayout from '../layouts/PassengerLayout';
+import AdminLayout from '../layouts/AdminLayout';
+import ProtectedRoute from './ProtectedRoute';
+
+// Public pages
 import Home from '../pages/Home';
+import SearchBus from '../pages/SearchBus';
+
+// Auth pages
 import Login from '../pages/Login';
 import Register from '../pages/Register';
+
+// Passenger pages
 import Dashboard from '../pages/Dashboard';
-import SearchBus from '../pages/SearchBus';
 import BookingHistory from '../pages/BookingHistory';
 import Profile from '../pages/Profile';
+
+// Admin pages
 import AdminDashboard from '../pages/AdminDashboard';
 import BusManagement from '../pages/BusManagement';
 import DriverManagement from '../pages/DriverManagement';
@@ -17,35 +28,66 @@ import ScheduleManagement from '../pages/ScheduleManagement';
 import BookingManagement from '../pages/BookingManagement';
 import NotFound from '../pages/NotFound';
 
+/**
+ * React Router v7 modular routing structure mapping roles and layout wrappers.
+ */
 const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Main Application Routes */}
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Home />} />
-          <Route path="search-bus" element={<SearchBus />} />
-          <Route path="bookings" element={<BookingHistory />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          
-          {/* Admin routes */}
-          <Route path="admin" element={<AdminDashboard />} />
-          <Route path="admin/buses" element={<BusManagement />} />
-          <Route path="admin/drivers" element={<DriverManagement />} />
-          <Route path="admin/routes" element={<RouteManagement />} />
-          <Route path="admin/schedules" element={<ScheduleManagement />} />
-          <Route path="admin/bookings" element={<BookingManagement />} />
-          
-          {/* Wildcard 404 Route */}
-          <Route path="*" element={<NotFound />} />
+        {/* Public Routes (Home and Searches) */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/search-bus" element={<SearchBus />} />
         </Route>
 
-        {/* Auth Layout Routing */}
+        {/* Authentication flow layouts (Login, Signup) */}
         <Route element={<AuthLayout />}>
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
         </Route>
+
+        {/* Passenger Protected Layouts */}
+        <Route element={<ProtectedRoute allowedRoles={['ROLE_PASSENGER']} />}>
+          <Route element={<PassengerLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/bookings" element={<BookingHistory />} />
+            <Route path="/profile" element={<Profile />} />
+          </Route>
+        </Route>
+
+        {/* Admin Management Layouts */}
+        <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN']} />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/buses" element={<BusManagement />} />
+            <Route path="/admin/drivers" element={<DriverManagement />} />
+            <Route path="/admin/routes" element={<RouteManagement />} />
+            <Route path="/admin/schedules" element={<ScheduleManagement />} />
+            <Route path="/admin/bookings" element={<BookingManagement />} />
+            <Route
+              path="/admin/payments"
+              element={
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                  <h2 className="text-xl font-bold text-slate-200 mb-2">Payment Transactions</h2>
+                  <p className="text-slate-400 text-sm">Administrative payment tracking details and refunds manager console.</p>
+                </div>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                  <h2 className="text-xl font-bold text-slate-200 mb-2">Reports & Analytics</h2>
+                  <p className="text-slate-400 text-sm">System dashboard, revenue trends, and conductor metrics console.</p>
+                </div>
+              }
+            />
+          </Route>
+        </Route>
+
+        {/* Wildcard 404 Route */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
