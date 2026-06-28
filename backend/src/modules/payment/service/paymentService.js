@@ -172,7 +172,21 @@ class PaymentService {
 
     // Automatically generate ticket for the passenger
     const ticketService = require('../../ticket/service/ticketService');
-    await ticketService.generateTicket(booking._id, payment._id, booking.userId);
+    const ticket = await ticketService.generateTicket(booking._id, payment._id, booking.userId);
+
+    // Resilient payment success notification dispatch
+    try {
+      const notificationService = require('../../notification/service/notificationService');
+      await notificationService.createNotification({
+        title: 'Payment Successful & Ticket Ready',
+        message: `Your payment of ${payment.amount} ${payment.currency} was successful. Your ticket (${ticket.ticketCode}) is ready to use.`,
+        type: 'PAYMENT_SUCCESS',
+        userId: booking.userId,
+        metadata: { bookingId: booking._id, paymentId: payment._id, ticketId: ticket._id }
+      });
+    } catch (notifError) {
+      console.error('Resilient Warning: Payment succeeded but notification dispatch failed:', notifError);
+    }
 
     return updatedPayment;
   }
@@ -275,6 +289,20 @@ class PaymentService {
         );
       })
     );
+
+    // Resilient refund notification dispatch
+    try {
+      const notificationService = require('../../notification/service/notificationService');
+      await notificationService.createNotification({
+        title: 'Payment Refunded',
+        message: `Your payment of ${booking.totalAmount} for booking ${booking.bookingCode} has been refunded.`,
+        type: 'PAYMENT_REFUNDED',
+        userId: booking.userId,
+        metadata: { bookingId: booking._id, paymentId: payment._id }
+      });
+    } catch (notifError) {
+      console.error('Resilient Warning: Refund processed but notification dispatch failed:', notifError);
+    }
 
     return updatedPayment;
   }

@@ -282,7 +282,13 @@ class ScheduleService {
       throw error;
     }
 
-    return await scheduleRepository.update(id, { status, updatedBy: updatedById });
+    const updatedSchedule = await scheduleRepository.update(id, { status, updatedBy: updatedById });
+
+    if (status === ScheduleStatus.CANCELLED) {
+      await this._notifyPassengersOfCancelledSchedule(id, updatedById);
+    }
+
+    return updatedSchedule;
   }
 
   /**
@@ -301,11 +307,56 @@ class ScheduleService {
       throw error;
     }
 
-    return await scheduleRepository.update(id, {
+    const updatedSchedule = await scheduleRepository.update(id, {
       status: ScheduleStatus.CANCELLED,
       deletedAt: new Date(),
       deletedBy: deletedById
     });
+
+    await this._notifyPassengersOfCancelledSchedule(id, deletedById);
+
+    return updatedSchedule;
+  }
+
+  /**
+   * Helper function to notify passengers of cancelled schedule.
+   * 
+   * @private
+   * @param {string} scheduleId - Schedule ID.
+   * @param {string} updatedById - User performing action.
+   */
+  async _notifyPassengersOfCancelledSchedule(scheduleId, updatedById) {
+    try {
+      const bookingRepository = require('../../booking/repository/bookingRepository');
+      const notificationService = require('../../notification/service/notificationService');
+
+      // Find all bookings for this schedule that are active
+      const { bookings } = await bookingRepository.findAll({
+        scheduleId,
+        limit: 1000
+      });
+
+      // Filter active bookings
+      const activeBookings = bookings.filter(
+        b => b.bookingStatus === 'PENDING' || b.bookingStatus === 'CONFIRMED'
+      );
+
+      // Notify each passenger
+      await Promise.all(
+        activeBookings.map(async (booking) => {
+          await notificationService.createNotification({
+            title: 'Schedule Cancelled',
+            message: `The schedule for your booking ${booking.bookingCode} has been cancelled. Please contact support or request a refund.`,
+            type: 'SCHEDULE_CANCELLED',
+            userId: booking.userId,
+            metadata: { bookingId: booking._id, scheduleId },
+            createdBy: updatedById
+          });
+        })
+      );
+    } catch (err) {
+      console.error('Resilient Warning: Failed to notify passengers of cancelled schedule:', err);
+    }
   }
 }
 

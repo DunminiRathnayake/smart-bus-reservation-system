@@ -222,9 +222,23 @@ class BookingService {
       updatedBy: reqUserId
     };
 
-    // TODO: Release expired bookings automatically using a cron job / background worker.
+    const updatedBooking = await bookingRepository.update(id, updatePayload);
 
-    return await bookingRepository.update(id, updatePayload);
+    // Resilient booking cancelled notification dispatch
+    try {
+      const notificationService = require('../../notification/service/notificationService');
+      await notificationService.createNotification({
+        title: 'Booking Cancelled',
+        message: `Your booking ${booking.bookingCode} has been cancelled successfully.`,
+        type: 'BOOKING_CANCELLED',
+        userId: booking.userId,
+        metadata: { bookingId: booking._id }
+      });
+    } catch (notifError) {
+      console.error('Resilient Warning: Booking cancelled but notification dispatch failed:', notifError);
+    }
+
+    return updatedBooking;
   }
 
   /**

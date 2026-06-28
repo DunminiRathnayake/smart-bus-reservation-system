@@ -17,6 +17,7 @@ const paymentRoutes = require('./modules/payment/routes/routes');
 const ticketRoutes = require('./modules/ticket/routes/routes');
 const feedbackRoutes = require('./modules/feedback/routes/routes');
 const dashboardRoutes = require('./modules/dashboard/routes/routes');
+const notificationRoutes = require('./modules/notification/routes/routes');
 
 const app = express();
 
@@ -64,6 +65,8 @@ app.use('/api/v1/tickets', ticketRoutes);
 app.use('/api/v1/admin/tickets', ticketRoutes);
 app.use('/api/v1/feedback', feedbackRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/admin/notifications', notificationRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
