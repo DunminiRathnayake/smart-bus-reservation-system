@@ -33,6 +33,10 @@ import DriverManagement from '../pages/DriverManagement';
 import RouteManagement from '../pages/RouteManagement';
 import ScheduleManagement from '../pages/ScheduleManagement';
 import BookingManagement from '../pages/BookingManagement';
+import Users from '../pages/Users';
+import Payments from '../pages/Payments';
+import AdminTickets from '../pages/AdminTickets';
+import AdminNotifications from '../pages/AdminNotifications';
 import NotFound from '../pages/NotFound';
 import Forbidden from '../pages/Forbidden';
 
@@ -79,20 +83,15 @@ const AppRoutes = () => {
         <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN']} />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<Users />} />
             <Route path="/admin/buses" element={<BusManagement />} />
             <Route path="/admin/drivers" element={<DriverManagement />} />
             <Route path="/admin/routes" element={<RouteManagement />} />
             <Route path="/admin/schedules" element={<ScheduleManagement />} />
             <Route path="/admin/bookings" element={<BookingManagement />} />
-            <Route
-              path="/admin/payments"
-              element={
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-                  <h2 className="text-xl font-bold text-slate-200 mb-2">Payment Transactions</h2>
-                  <p className="text-slate-400 text-sm">Administrative payment tracking details and refunds manager console.</p>
-                </div>
-              }
-            />
+            <Route path="/admin/payments" element={<Payments />} />
+            <Route path="/admin/tickets" element={<AdminTickets />} />
+            <Route path="/admin/notifications" element={<AdminNotifications />} />
             <Route
               path="/admin/reports"
               element={
