@@ -21,14 +21,22 @@ api.interceptors.request.use(
   }
 );
 
-// Interceptor to handle session expirations
+// Interceptor to handle session expirations and normalize errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Normalize backend error messages into a standard property
+    const message = error.response?.data?.message || error.message || 'An unexpected error occurred';
+    error.normalizedMessage = message;
+
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      
+      // Prevent redirect loops if the user is already on the login page
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login?expired=true';
+      }
     }
     return Promise.reject(error);
   }

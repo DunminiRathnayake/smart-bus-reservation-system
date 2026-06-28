@@ -27,6 +27,7 @@ import RouteManagement from '../pages/RouteManagement';
 import ScheduleManagement from '../pages/ScheduleManagement';
 import BookingManagement from '../pages/BookingManagement';
 import NotFound from '../pages/NotFound';
+import Forbidden from '../pages/Forbidden';
 
 /**
  * React Router v7 modular routing structure mapping roles and layout wrappers.
@@ -39,12 +40,15 @@ const AppRoutes = () => {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/search-bus" element={<SearchBus />} />
+          <Route path="/forbidden" element={<Forbidden />} />
         </Route>
 
-        {/* Authentication flow layouts (Login, Signup) */}
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+        {/* Authentication flow layouts (Login, Signup) - Guest Only */}
+        <Route element={<ProtectedRoute guestOnly />}>
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Route>
         </Route>
 
         {/* Passenger Protected Layouts */}
