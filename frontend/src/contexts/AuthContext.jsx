@@ -4,6 +4,19 @@ import userService from '../services/userService';
 
 export const AuthContext = createContext(null);
 
+/**
+ * Normalizes user role fields, mapping backend strings (ADMIN/PASSENGER)
+ * to frontend conventions (ROLE_ADMIN/ROLE_PASSENGER).
+ */
+const normalizeUser = (userData) => {
+  if (!userData) return null;
+  let role = userData.role;
+  if (role && !role.startsWith('ROLE_')) {
+    role = `ROLE_${role}`;
+  }
+  return { ...userData, role };
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,13 +28,14 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       
       if (savedUser && token) {
-        setUser(JSON.parse(savedUser));
+        setUser(normalizeUser(JSON.parse(savedUser)));
         try {
           // Fetch fresh user details to check JWT status
           const response = await userService.getMe();
           if (response.success && response.data.user) {
-            setUser(response.data.user);
-            localStorage.setItem('user', JSON.stringify(response.data.user));
+            const normalized = normalizeUser(response.data.user);
+            setUser(normalized);
+            localStorage.setItem('user', JSON.stringify(normalized));
           }
         } catch (error) {
           console.error('Session check failed. Token might be expired:', error);
@@ -38,9 +52,10 @@ export const AuthProvider = ({ children }) => {
    * Completes login by storing token and details.
    */
   const login = (userData, token) => {
-    localStorage.setItem('user', JSON.stringify(userData));
+    const normalized = normalizeUser(userData);
+    localStorage.setItem('user', JSON.stringify(normalized));
     localStorage.setItem('token', token);
-    setUser(userData);
+    setUser(normalized);
   };
 
   /**
@@ -66,8 +81,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await userService.getMe();
       if (response.success && response.data.user) {
-        setUser(response.data.user);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        const normalized = normalizeUser(response.data.user);
+        setUser(normalized);
+        localStorage.setItem('user', JSON.stringify(normalized));
       }
     } catch (error) {
       console.error('Failed to refresh user profile data:', error);
