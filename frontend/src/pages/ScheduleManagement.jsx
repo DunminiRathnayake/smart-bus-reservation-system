@@ -91,7 +91,7 @@ const ScheduleManagement = () => {
       arrivalTimeInput: '12:00',
       boardingTimeInput: '07:45',
       fare: 15,
-      status: 'ACTIVE'
+      status: 'SCHEDULED'
     }
   });
 
@@ -101,7 +101,7 @@ const ScheduleManagement = () => {
     if (watchedRouteId && routes.length > 0 && !editingSchedule) {
       const selectedRoute = routes.find((r) => r._id === watchedRouteId);
       if (selectedRoute) {
-        setValue('fare', selectedRoute.fare);
+        setValue('fare', selectedRoute.baseFare || selectedRoute.fare);
       }
     }
   }, [watchedRouteId, routes, editingSchedule, setValue]);
@@ -169,8 +169,8 @@ const ScheduleManagement = () => {
       departureTimeInput: '08:00',
       arrivalTimeInput: '12:00',
       boardingTimeInput: '07:45',
-      fare: 15,
-      status: 'ACTIVE'
+      fare: routes[0]?.baseFare || 15,
+      status: 'SCHEDULED'
     });
     setModalOpen(true);
   };
@@ -275,10 +275,12 @@ const ScheduleManagement = () => {
 
   const getStatusBadge = (status) => {
     const styles = {
-      ACTIVE: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-      CANCELLED: 'bg-red-500/10 text-red-400 border border-red-500/20',
-      DELAYED: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-      COMPLETED: 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+      SCHEDULED: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+      BOARDING: 'bg-teal-500/10 text-teal-400 border border-teal-500/20',
+      DEPARTED: 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
+      ARRIVED: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
+      COMPLETED: 'bg-slate-800 text-slate-400 border border-slate-750',
+      CANCELLED: 'bg-red-500/10 text-red-400 border border-red-500/20'
     };
     return (
       <span className={`px-2 py-0.5 text-[9px] font-bold rounded-md uppercase tracking-wider ${styles[status] || ''}`}>
@@ -315,7 +317,7 @@ const ScheduleManagement = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2 pl-9 pr-4 focus:outline-none focus:border-emerald-500 text-xs text-slate-200"
           />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-550" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-555" />
         </div>
 
         <div className="flex items-center gap-2 text-xs">
@@ -326,10 +328,12 @@ const ScheduleManagement = () => {
             className="bg-slate-950 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-slate-350"
           >
             <option value="ALL">All Status</option>
-            <option value="ACTIVE">Active</option>
-            <option value="CANCELLED">Cancelled</option>
-            <option value="DELAYED">Delayed</option>
+            <option value="SCHEDULED">Scheduled</option>
+            <option value="BOARDING">Boarding</option>
+            <option value="DEPARTED">Departed</option>
+            <option value="ARRIVED">Arrived</option>
             <option value="COMPLETED">Completed</option>
+            <option value="CANCELLED">Cancelled</option>
           </select>
         </div>
 
@@ -379,7 +383,7 @@ const ScheduleManagement = () => {
                       </td>
                       <td className="p-4 sm:p-5">
                         <div className="space-y-0.5">
-                          <p>{item.busId?.name || 'Cruiser'}</p>
+                          <p>{item.busId?.busName || 'Cruiser'}</p>
                           <p className="text-[10px] text-slate-500 font-semibold">{item.driverId?.fullName || 'Conductor'}</p>
                         </div>
                       </td>
@@ -495,11 +499,11 @@ const ScheduleManagement = () => {
                   <span className="font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1"><Bus className="h-3.5 w-3.5" /> Select Bus</span>
                   <select
                     {...registerField('busId')}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-350"
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-355"
                   >
                     <option value="">Choose active vehicle</option>
                     {buses.map((b) => (
-                      <option key={b._id} value={b._id}>{b.name} ({b.capacity} seats)</option>
+                      <option key={b._id} value={b._id}>{b.busName} ({b.capacity} seats)</option>
                     ))}
                   </select>
                   {errors.busId && <p className="text-red-400 text-[10px] mt-0.5">{errors.busId.message}</p>}
@@ -509,11 +513,11 @@ const ScheduleManagement = () => {
                   <span className="font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1"><Compass className="h-3.5 w-3.5" /> Select Route</span>
                   <select
                     {...registerField('routeId')}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-350"
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-355"
                   >
                     <option value="">Choose route path</option>
                     {routes.map((r) => (
-                      <option key={r._id} value={r._id}>{r.origin} ➔ {r.destination} (${r.fare})</option>
+                      <option key={r._id} value={r._id}>{r.origin} ➔ {r.destination} (${r.baseFare})</option>
                     ))}
                   </select>
                   {errors.routeId && <p className="text-red-400 text-[10px] mt-0.5">{errors.routeId.message}</p>}
@@ -523,7 +527,7 @@ const ScheduleManagement = () => {
                   <span className="font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1"><UserCheck className="h-3.5 w-3.5" /> Select Driver</span>
                   <select
                     {...registerField('driverId')}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-350"
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-355"
                   >
                     <option value="">Choose conductor operator</option>
                     {drivers.map((d) => (
@@ -582,12 +586,14 @@ const ScheduleManagement = () => {
                   <label className="font-semibold text-slate-400 uppercase tracking-wider">Schedule Status</label>
                   <select
                     {...registerField('status')}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-350"
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-355"
                   >
-                    <option value="ACTIVE">Active</option>
-                    <option value="CANCELLED">Cancelled</option>
-                    <option value="DELAYED">Delayed</option>
+                    <option value="SCHEDULED">Scheduled</option>
+                    <option value="BOARDING">Boarding</option>
+                    <option value="DEPARTED">Departed</option>
+                    <option value="ARRIVED">Arrived</option>
                     <option value="COMPLETED">Completed</option>
+                    <option value="CANCELLED">Cancelled</option>
                   </select>
                 </div>
               )}
