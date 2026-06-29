@@ -81,7 +81,7 @@ const RouteManagement = () => {
       routeName: '',
       origin: '',
       destination: '',
-      type: 'EXPRESSWAY',
+      type: 'EXPRESS',
       distance: 100,
       estimatedDuration: 120,
       baseFare: 15,
@@ -132,7 +132,7 @@ const RouteManagement = () => {
       routeName: '',
       origin: '',
       destination: '',
-      type: 'EXPRESSWAY',
+      type: 'EXPRESS',
       distance: 100,
       estimatedDuration: 120,
       baseFare: 15,
@@ -317,7 +317,7 @@ const RouteManagement = () => {
                     <td className="p-4 sm:p-5 font-semibold text-slate-300">
                       {route.origin} ➔ {route.destination}
                     </td>
-                    <td className="p-4 sm:p-5 text-slate-450 truncate max-w-[150px]">
+                    <td className="p-4 sm:p-5 text-slate-455 truncate max-w-[150px]">
                       {route.stops?.length > 0 ? route.stops.map((s) => s.name).join(', ') : 'Direct route'}
                     </td>
                     <td className="p-4 sm:p-5">
@@ -497,10 +497,9 @@ const RouteManagement = () => {
                     {...registerField('type')}
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-355"
                   >
-                    <option value="EXPRESSWAY">Expressway</option>
-                    <option value="INTERCITY">Intercity</option>
-                    <option value="CITY_TO_CITY">City to City</option>
-                    <option value="LOCAL">Local</option>
+                    <option value="EXPRESS">Express</option>
+                    <option value="NORMAL">Normal</option>
+                    <option value="HIGHWAY">Highway</option>
                   </select>
                 </div>
               </div>
