@@ -23,8 +23,8 @@ const createSchedule = asyncHandler(async (req, res) => {
  * @access  Private/Admin
  */
 const getSchedules = asyncHandler(async (req, res) => {
-  const { page, limit, search, status, busId, driverId, routeId, travelDate, sortBy } = req.query;
-  const result = await scheduleService.getSchedules({ page, limit, search, status, busId, driverId, routeId, travelDate, sortBy });
+  const { page, limit, search, status, busId, driverId, routeId, travelDate, origin, destination, sortBy } = req.query;
+  const result = await scheduleService.getSchedules({ page, limit, search, status, busId, driverId, routeId, travelDate, origin, destination, sortBy });
   
   return paginatedResponse(res, 'Schedules retrieved successfully', 'schedules', result.schedules, result.pagination);
 });

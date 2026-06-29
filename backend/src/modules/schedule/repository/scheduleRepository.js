@@ -3,6 +3,7 @@
  * @description Encapsulates all database operations for the Schedule model, supporting conflict checking and paginated retrieval.
  */
 
+const mongoose = require('mongoose');
 const Schedule = require('../model/Schedule');
 const ScheduleStatus = require('../../../constants/scheduleStatus');
 
@@ -55,7 +56,7 @@ class ScheduleRepository {
    * @param {string} [options.sortBy='travelDate'] - Sorting parameter.
    * @returns {Promise<Object>} Object containing schedules list and pagination metadata.
    */
-  async findAll({ page = 1, limit = 10, search = '', status = '', busId = '', driverId = '', routeId = '', travelDate = '', sortBy = 'travelDate' }) {
+  async findAll({ page = 1, limit = 10, search = '', status = '', busId = '', driverId = '', routeId = '', travelDate = '', origin = '', destination = '', sortBy = 'travelDate' }) {
     try {
       const filter = { deletedAt: null };
 
@@ -76,6 +77,36 @@ class ScheduleRepository {
       }
       if (routeId) {
         filter.routeId = routeId;
+      }
+
+      // 2.5 Filter by origin / destination (case-insensitive regex match)
+      if (origin || destination) {
+        const RouteModel = mongoose.model('Route');
+        const routeQuery = { deletedAt: null };
+        if (origin) {
+          routeQuery.origin = new RegExp(origin.trim(), 'i');
+        }
+        if (destination) {
+          routeQuery.destination = new RegExp(destination.trim(), 'i');
+        }
+        const matchingRoutes = await RouteModel.find(routeQuery).select('_id').exec();
+        const routeIds = matchingRoutes.map(r => r._id);
+        
+        // If there are no routes matching, schedules result must be empty
+        if (routeIds.length === 0) {
+          return {
+            schedules: [],
+            pagination: {
+              page: Math.max(1, parseInt(page)),
+              limit: Math.max(1, parseInt(limit)),
+              totalItems: 0,
+              totalPages: 0,
+              hasNext: false,
+              hasPrevious: false
+            }
+          };
+        }
+        filter.routeId = { $in: routeIds };
       }
 
       // 3. Travel Date Filtering (matches start and end boundaries of the specified travelDate)
