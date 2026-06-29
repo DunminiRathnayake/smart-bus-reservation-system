@@ -75,7 +75,9 @@ const SearchBus = () => {
         addToast(response.message || 'Failed to search schedules.', 'error');
       }
     } catch (error) {
-      addToast('An error occurred while fetching bus departures.', 'error');
+      console.error('Fetch schedules error:', error);
+      const msg = error.response?.data?.message || error.normalizedMessage || error.message || 'An error occurred while fetching bus departures.';
+      addToast(msg, 'error');
     } finally {
       setLoading(false);
     }
