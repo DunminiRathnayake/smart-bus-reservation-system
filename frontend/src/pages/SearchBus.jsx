@@ -28,18 +28,18 @@ import {
 
 // Sri Lankan major cities with coordinate mappings for the interactive SVG route map
 const SRI_LANKA_COORDS = {
-  colombo: { x: 105, y: 270, name: 'Colombo' },
-  negombo: { x: 98, y: 235, name: 'Negombo' },
-  kandy: { x: 145, y: 215, name: 'Kandy' },
-  kurunegala: { x: 125, y: 190, name: 'Kurunegala' },
-  matara: { x: 125, y: 355, name: 'Matara' },
-  galle: { x: 105, y: 335, name: 'Galle' },
-  ella: { x: 165, y: 260, name: 'Ella' },
-  kataragama: { x: 175, y: 315, name: 'Kataragama' },
+  colombo: { x: 75, y: 270, name: 'Colombo' },
+  negombo: { x: 70, y: 235, name: 'Negombo' },
+  kandy: { x: 120, y: 215, name: 'Kandy' },
+  kurunegala: { x: 105, y: 190, name: 'Kurunegala' },
+  matara: { x: 115, y: 360, name: 'Matara' },
+  galle: { x: 92, y: 345, name: 'Galle' },
+  ella: { x: 145, y: 260, name: 'Ella' },
+  kataragama: { x: 155, y: 315, name: 'Kataragama' },
   jaffna: { x: 100, y: 45, name: 'Jaffna' },
   trincomalee: { x: 165, y: 130, name: 'Trincomalee' },
-  batticaloa: { x: 195, y: 190, name: 'Batticaloa' },
-  panadura: { x: 106, y: 290, name: 'Panadura' }
+  batticaloa: { x: 180, y: 190, name: 'Batticaloa' },
+  panadura: { x: 77, y: 290, name: 'Panadura' }
 };
 
 const formatTime = (isoString) => {
@@ -638,7 +638,7 @@ const SearchBus = () => {
               <svg width="220" height="380" viewBox="0 0 220 380" className="w-full h-auto text-slate-800">
                 {/* Main Sri Lanka Coast Outline */}
                 <path
-                  d="M 115,35 C 110,32 103,38 101,43 C 99,48 105,53 108,55 C 103,58 97,64 92,72 C 88,80 82,85 85,92 C 87,97 93,92 98,88 C 94,98 90,108 88,118 C 86,128 89,140 92,152 C 95,164 93,178 93,190 C 93,202 95,214 96,226 C 97,238 98,250 100,262 C 102,274 103,286 105,298 C 107,310 107,322 109,334 C 111,346 116,352 122,356 C 128,360 135,360 142,354 C 149,348 156,344 163,338 C 170,332 176,324 179,315 C 182,306 182,296 182,286 C 182,276 185,266 187,256 C 189,246 191,236 191,226 C 191,216 193,206 194,196 C 195,186 194,176 191,166 C 188,156 183,148 178,142 C 173,136 167,136 172,130 C 177,124 182,120 179,114 C 176,108 170,106 166,100 C 162,94 158,84 154,74 C 150,64 146,54 140,46 C 134,38 126,35 115,35 Z"
+                  d="M 115,35 C 105,35 95,40 90,45 C 80,50 75,55 82,65 C 88,72 88,80 82,85 C 76,90 68,95 62,105 C 56,115 54,130 55,145 C 56,160 59,175 62,190 C 65,205 66,220 68,235 C 70,250 71,265 74,280 C 77,295 78,310 82,325 C 86,340 92,350 100,358 C 108,365 118,367 128,365 C 138,363 148,358 158,350 C 168,342 178,332 185,320 C 192,308 195,295 195,280 C 195,265 193,250 191,235 C 189,220 187,205 185,190 C 183,175 180,160 176,145 C 172,130 160,122 165,115 C 170,108 172,98 165,90 C 158,82 150,75 145,65 C 140,55 130,45 120,38 C 118,36 117,35 115,35 Z"
                   fill="rgba(16, 185, 129, 0.03)"
                   stroke="rgba(16, 185, 129, 0.3)"
                   strokeWidth="1.5"
@@ -647,7 +647,7 @@ const SearchBus = () => {
 
                 {/* Mannar Island */}
                 <path
-                  d="M 80,85 C 75,87 72,92 78,94 C 84,96 85,90 80,85 Z"
+                  d="M 52,85 C 47,87 45,92 50,94 C 55,96 56,90 52,85 Z"
                   fill="rgba(16, 185, 129, 0.03)"
                   stroke="rgba(16, 185, 129, 0.25)"
                   strokeWidth="1"
@@ -655,7 +655,7 @@ const SearchBus = () => {
 
                 {/* Delft Island */}
                 <path
-                  d="M 90,52 C 87,54 86,58 91,60 C 96,62 95,55 90,52 Z"
+                  d="M 68,52 C 65,54 64,58 69,60 C 74,62 73,55 68,52 Z"
                   fill="rgba(16, 185, 129, 0.03)"
                   stroke="rgba(16, 185, 129, 0.25)"
                   strokeWidth="1"
