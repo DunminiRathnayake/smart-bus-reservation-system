@@ -21,9 +21,21 @@ import {
 } from 'lucide-react';
 
 const driverSchema = z.object({
-  fullName: z.string().min(2, 'Driver name is required (min 2 characters)'),
+  employeeId: z.string().min(2, 'Employee ID is required'),
+  fullName: z.string().min(2, 'Full name is required (min 2 characters)'),
+  email: z.string().email('Please provide a valid email address'),
   phoneNumber: z.string().min(8, 'Phone number must be at least 8 digits'),
+  nic: z.string().min(5, 'NIC is required'),
+  address: z.string().min(5, 'Address is required'),
+  gender: z.string().min(1, 'Gender is required'),
+  dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  joiningDate: z.string().min(1, 'Joining date is required'),
+  experienceYears: z.preprocess(
+    (val) => Number(val),
+    z.number().min(0, 'Experience years must be 0 or more')
+  ),
   licenseNumber: z.string().min(4, 'License number is required'),
+  licenseExpiry: z.string().min(1, 'License expiry date is required'),
   status: z.string().optional()
 });
 
@@ -60,7 +72,21 @@ const DriverManagement = () => {
     formState: { errors }
   } = useForm({
     resolver: zodResolver(driverSchema),
-    defaultValues: { fullName: '', phoneNumber: '', licenseNumber: '', status: 'ACTIVE' }
+    defaultValues: {
+      employeeId: '',
+      fullName: '',
+      email: '',
+      phoneNumber: '',
+      nic: '',
+      address: '',
+      gender: 'MALE',
+      dateOfBirth: '',
+      joiningDate: '',
+      experienceYears: 1,
+      licenseNumber: '',
+      licenseExpiry: '',
+      status: 'ACTIVE'
+    }
   });
 
   const fetchDrivers = async () => {
@@ -99,26 +125,62 @@ const DriverManagement = () => {
     fetchDrivers();
   };
 
+  const formatDateString = (isoString) => {
+    if (!isoString) return '';
+    return new Date(isoString).toISOString().split('T')[0];
+  };
+
   const handleOpenAdd = () => {
     setEditingDriver(null);
-    reset({ fullName: '', phoneNumber: '', licenseNumber: '', status: 'ACTIVE' });
+    reset({
+      employeeId: `EMP-${Math.floor(100 + Math.random() * 900)}`,
+      fullName: '',
+      email: '',
+      phoneNumber: '',
+      nic: '',
+      address: '',
+      gender: 'MALE',
+      dateOfBirth: '1990-01-01',
+      joiningDate: new Date().toISOString().split('T')[0],
+      experienceYears: 1,
+      licenseNumber: '',
+      licenseExpiry: '2030-01-01',
+      status: 'ACTIVE'
+    });
     setModalOpen(true);
   };
 
   const handleOpenEdit = (driver) => {
     setEditingDriver(driver);
+    setValue('employeeId', driver.employeeId);
     setValue('fullName', driver.fullName);
+    setValue('email', driver.email);
     setValue('phoneNumber', driver.phoneNumber);
+    setValue('nic', driver.nic);
+    setValue('address', driver.address);
+    setValue('gender', driver.gender);
+    setValue('dateOfBirth', formatDateString(driver.dateOfBirth));
+    setValue('joiningDate', formatDateString(driver.joiningDate));
+    setValue('experienceYears', driver.experienceYears);
     setValue('licenseNumber', driver.licenseNumber);
+    setValue('licenseExpiry', formatDateString(driver.licenseExpiry));
     setValue('status', driver.status);
     setModalOpen(true);
   };
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
+    // Format dates to ISO String format for backend
+    const payload = {
+      ...data,
+      dateOfBirth: new Date(data.dateOfBirth).toISOString(),
+      joiningDate: new Date(data.joiningDate).toISOString(),
+      licenseExpiry: new Date(data.licenseExpiry).toISOString()
+    };
+
     try {
       if (editingDriver) {
-        const response = await driverService.updateDriver(editingDriver._id, data);
+        const response = await driverService.updateDriver(editingDriver._id, payload);
         if (response.success) {
           addToast('Driver credentials updated.', 'success');
           setModalOpen(false);
@@ -127,7 +189,7 @@ const DriverManagement = () => {
           addToast(response.message || 'Update failed.', 'error');
         }
       } else {
-        const response = await driverService.createDriver(data);
+        const response = await driverService.createDriver(payload);
         if (response.success) {
           addToast('New driver registered.', 'success');
           setModalOpen(false);
@@ -198,7 +260,7 @@ const DriverManagement = () => {
         <div className="relative flex-grow max-w-xs">
           <input
             type="text"
-            placeholder="Search driver name or license..."
+            placeholder="Search driver name, employee ID, or license..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2 pl-9 pr-4 focus:outline-none focus:border-emerald-500 text-xs text-slate-200"
@@ -244,8 +306,9 @@ const DriverManagement = () => {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-950/40 border-b border-slate-850 text-slate-400 font-bold uppercase tracking-wider">
+                  <th className="p-4 sm:p-5">Emp ID</th>
                   <th className="p-4 sm:p-5">Driver Name</th>
-                  <th className="p-4 sm:p-5">Phone Number</th>
+                  <th className="p-4 sm:p-5">Contact Details</th>
                   <th className="p-4 sm:p-5">License Number</th>
                   <th className="p-4 sm:p-5">Status</th>
                   <th className="p-4 sm:p-5 text-right">Actions</th>
@@ -254,9 +317,16 @@ const DriverManagement = () => {
               <tbody className="divide-y divide-slate-850/80">
                 {drivers.map((driver) => (
                   <tr key={driver._id} className="hover:bg-slate-850/20 text-slate-300 transition-colors">
+                    <td className="p-4 sm:p-5 font-mono text-emerald-450 font-bold">{driver.employeeId}</td>
                     <td className="p-4 sm:p-5 font-semibold text-slate-200">{driver.fullName}</td>
-                    <td className="p-4 sm:p-5 text-slate-450">{driver.phoneNumber}</td>
-                    <td className="p-4 sm:p-5 font-mono text-slate-400">{driver.licenseNumber}</td>
+                    <td className="p-4 sm:p-5 text-slate-400">
+                      <div>{driver.phoneNumber}</div>
+                      <div className="text-[10px] text-slate-500">{driver.email}</div>
+                    </td>
+                    <td className="p-4 sm:p-5 font-mono text-slate-400">
+                      <div>{driver.licenseNumber}</div>
+                      <div className="text-[9px] text-slate-500">Exp: {formatDateString(driver.licenseExpiry)}</div>
+                    </td>
                     <td className="p-4 sm:p-5">{getStatusBadge(driver.status)}</td>
                     <td className="p-4 sm:p-5 text-right space-x-2">
                       <button
@@ -295,7 +365,7 @@ const DriverManagement = () => {
             onClick={() => setCurrentPage(currentPage - 1)}
             className="px-4 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed border border-slate-800 text-slate-300 rounded-xl flex items-center gap-1.5 transition-colors"
           >
-            <ChevronLeft className="h-4 w-4" /> Previous
+            Previous
           </button>
           <span className="text-slate-500">
             Page {currentPage} of {totalPages}
@@ -305,7 +375,7 @@ const DriverManagement = () => {
             onClick={() => setCurrentPage(currentPage + 1)}
             className="px-4 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed border border-slate-800 text-slate-300 rounded-xl flex items-center gap-1.5 transition-colors"
           >
-            Next <ChevronRight className="h-4 w-4" />
+            Next
           </button>
         </div>
       )}
@@ -313,12 +383,12 @@ const DriverManagement = () => {
       {/* Add / Edit Form Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="relative w-full max-w-md bg-slate-900 border border-slate-850 rounded-3xl shadow-xl p-6 overflow-hidden">
+          <div className="relative w-full max-w-lg bg-slate-900 border border-slate-850 rounded-3xl shadow-xl p-6 overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none" />
 
             <div className="flex justify-between items-center border-b border-slate-850 pb-4 mb-4 relative z-10">
               <h3 className="text-base font-bold text-slate-200">
-                {editingDriver ? 'Edit Driver' : 'Register Operator'}
+                {editingDriver ? 'Edit Driver Details' : 'Register Operator'}
               </h3>
               <button
                 onClick={() => setModalOpen(false)}
@@ -329,52 +399,162 @@ const DriverManagement = () => {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 relative z-10 text-xs text-slate-300">
-              <div className="space-y-1.5">
-                <label className="font-semibold text-slate-450 uppercase tracking-wider">Full Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. David Conductor"
-                  {...registerField('fullName')}
-                  className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
-                />
-                {errors.fullName && <p className="text-red-400 text-[10px] mt-0.5">{errors.fullName.message}</p>}
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="font-semibold text-slate-450 uppercase tracking-wider">Phone Number</label>
-                <input
-                  type="text"
-                  placeholder="e.g. 55501920"
-                  {...registerField('phoneNumber')}
-                  className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
-                />
-                {errors.phoneNumber && <p className="text-red-400 text-[10px] mt-0.5">{errors.phoneNumber.message}</p>}
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="font-semibold text-slate-450 uppercase tracking-wider">License Number</label>
-                <input
-                  type="text"
-                  placeholder="e.g. LIC-492049"
-                  {...registerField('licenseNumber')}
-                  className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200 font-mono"
-                />
-                {errors.licenseNumber && <p className="text-red-400 text-[10px] mt-0.5">{errors.licenseNumber.message}</p>}
-              </div>
-
-              {editingDriver && (
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-450 uppercase tracking-wider">Duty Status</label>
-                  <select
-                    {...registerField('status')}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-350"
-                  >
-                    <option value="ACTIVE">Active (On Duty)</option>
-                    <option value="INACTIVE">Inactive (Off Duty)</option>
-                    <option value="SUSPENDED">Suspended</option>
-                  </select>
+                  <label className="font-semibold text-slate-450 uppercase tracking-wider">Employee ID</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. EMP-101"
+                    {...registerField('employeeId')}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200 font-mono"
+                  />
+                  {errors.employeeId && <p className="text-red-400 text-[10px] mt-0.5">{errors.employeeId.message}</p>}
                 </div>
-              )}
+
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-slate-450 uppercase tracking-wider">Full Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. John Doe"
+                    {...registerField('fullName')}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
+                  />
+                  {errors.fullName && <p className="text-red-400 text-[10px] mt-0.5">{errors.fullName.message}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-slate-450 uppercase tracking-wider">Email Address</label>
+                  <input
+                    type="email"
+                    placeholder="e.g. john@smartgo.com"
+                    {...registerField('email')}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
+                  />
+                  {errors.email && <p className="text-red-400 text-[10px] mt-0.5">{errors.email.message}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-slate-450 uppercase tracking-wider">Phone Number</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 0777934012"
+                    {...registerField('phoneNumber')}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
+                  />
+                  {errors.phoneNumber && <p className="text-red-400 text-[10px] mt-0.5">{errors.phoneNumber.message}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-slate-455 uppercase tracking-wider">NIC Number</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 199012345678"
+                    {...registerField('nic')}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200 font-mono"
+                  />
+                  {errors.nic && <p className="text-red-400 text-[10px] mt-0.5">{errors.nic.message}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-slate-455 uppercase tracking-wider">Gender</label>
+                  <select
+                    {...registerField('gender')}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-355"
+                  >
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                  {errors.gender && <p className="text-red-400 text-[10px] mt-0.5">{errors.gender.message}</p>}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-semibold text-slate-450 uppercase tracking-wider">Address</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 123 Main Street, Colombo"
+                  {...registerField('address')}
+                  className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
+                />
+                {errors.address && <p className="text-red-400 text-[10px] mt-0.5">{errors.address.message}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-slate-455 uppercase tracking-wider">Date of Birth</label>
+                  <input
+                    type="date"
+                    {...registerField('dateOfBirth')}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
+                  />
+                  {errors.dateOfBirth && <p className="text-red-400 text-[10px] mt-0.5">{errors.dateOfBirth.message}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-slate-455 uppercase tracking-wider">Joining Date</label>
+                  <input
+                    type="date"
+                    {...registerField('joiningDate')}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
+                  />
+                  {errors.joiningDate && <p className="text-red-400 text-[10px] mt-0.5">{errors.joiningDate.message}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-slate-455 uppercase tracking-wider">License Number</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. B1234567"
+                    {...registerField('licenseNumber')}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200 font-mono"
+                  />
+                  {errors.licenseNumber && <p className="text-red-400 text-[10px] mt-0.5">{errors.licenseNumber.message}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-slate-455 uppercase tracking-wider">License Expiry</label>
+                  <input
+                    type="date"
+                    {...registerField('licenseExpiry')}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
+                  />
+                  {errors.licenseExpiry && <p className="text-red-400 text-[10px] mt-0.5">{errors.licenseExpiry.message}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-slate-455 uppercase tracking-wider">Experience (Years)</label>
+                  <input
+                    type="number"
+                    placeholder="5"
+                    {...registerField('experienceYears')}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
+                  />
+                  {errors.experienceYears && <p className="text-red-400 text-[10px] mt-0.5">{errors.experienceYears.message}</p>}
+                </div>
+
+                {editingDriver && (
+                  <div className="space-y-1.5">
+                    <label className="font-semibold text-slate-455 uppercase tracking-wider">Duty Status</label>
+                    <select
+                      {...registerField('status')}
+                      className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-350"
+                    >
+                      <option value="ACTIVE">Active (On Duty)</option>
+                      <option value="INACTIVE">Inactive (Off Duty)</option>
+                      <option value="SUSPENDED">Suspended</option>
+                    </select>
+                  </div>
+                )}
+              </div>
 
               <button
                 type="submit"
