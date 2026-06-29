@@ -19,6 +19,31 @@ import {
   DollarSign
 } from 'lucide-react';
 
+const formatTime = (isoString) => {
+  if (!isoString) return 'N/A';
+  return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+};
+
+const formatDate = (isoString) => {
+  if (!isoString) return 'N/A';
+  return new Date(isoString).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const getDurationText = (schedule) => {
+  if (schedule.routeId?.estimatedDuration) {
+    const minutes = schedule.routeId.estimatedDuration;
+    const hrs = minutes / 60;
+    return `${Number(hrs.toFixed(2))}h`;
+  }
+  if (schedule.departureTime && schedule.arrivalTime) {
+    const diffMs = new Date(schedule.arrivalTime) - new Date(schedule.departureTime);
+    const diffMins = Math.round(diffMs / 60000);
+    const hrs = diffMins / 60;
+    return `${Number(hrs.toFixed(2))}h`;
+  }
+  return 'N/A';
+};
+
 /**
  * Main Search Bus page with filters, sorting list, available seats count, and detail redirection.
  */
@@ -286,7 +311,7 @@ const SearchBus = () => {
         ) : filteredSchedules.length > 0 ? (
           <div className="grid grid-cols-1 gap-4">
             {filteredSchedules.map((schedule) => {
-              const baseFare = schedule.fare || (schedule.routeId && schedule.routeId.fare) || 0;
+              const baseFare = schedule.fare || (schedule.routeId && schedule.routeId.baseFare) || 0;
               const availableSeats = schedule.availableSeats !== undefined ? schedule.availableSeats : 40; // Default or calculated seats
 
               return (
@@ -309,24 +334,26 @@ const SearchBus = () => {
                     <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
                       <div>
                         <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-                          <Clock className="h-4 w-4 text-slate-500" />
-                          <span>{schedule.departureTime}</span>
+                          <Clock className="h-4 w-4 text-slate-550" />
+                          <span>{formatTime(schedule.departureTime)}</span>
                         </div>
-                        <p className="text-xs font-bold text-slate-300 mt-0.5">{schedule.routeId?.origin}</p>
+                        <p className="text-[10px] text-slate-500 font-semibold">{formatDate(schedule.departureTime)}</p>
+                        <p className="text-xs font-bold text-slate-300 mt-1">{schedule.routeId?.origin}</p>
                       </div>
                       
-                      <ArrowRight className="h-4 w-4 text-emerald-500/50" />
+                      <ArrowRight className="h-4 w-4 text-emerald-500/40" />
 
                       <div>
                         <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-                          <Clock className="h-4 w-4 text-slate-500" />
-                          <span>{schedule.arrivalTime || 'Next Day'}</span>
+                          <Clock className="h-4 w-4 text-slate-550" />
+                          <span>{formatTime(schedule.arrivalTime)}</span>
                         </div>
-                        <p className="text-xs font-bold text-slate-300 mt-0.5">{schedule.routeId?.destination}</p>
+                        <p className="text-[10px] text-slate-500 font-semibold">{formatDate(schedule.arrivalTime)}</p>
+                        <p className="text-xs font-bold text-slate-300 mt-1">{schedule.routeId?.destination}</p>
                       </div>
 
                       <div className="border-l border-slate-800 pl-4 sm:pl-6 text-xs text-slate-400">
-                        <p>Duration: <span className="font-semibold text-slate-300">{schedule.duration || 'N/A'}</span></p>
+                        <p>Duration: <span className="font-semibold text-slate-300">{getDurationText(schedule)}</span></p>
                         <p className="mt-0.5">Seats Left: <span className="font-bold text-emerald-400 font-mono">{availableSeats}</span></p>
                       </div>
                     </div>
