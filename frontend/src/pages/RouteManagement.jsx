@@ -33,10 +33,6 @@ const routeSchema = z.object({
     (val) => Number(val),
     z.number().min(0.1, 'Duration must be at least 0.1 hours')
   ),
-  farePerKm: z.preprocess(
-    (val) => Number(val),
-    z.number().min(0.01, 'Fare per km must be at least $0.01')
-  ),
   stopsInput: z.string().optional()
 });
 
@@ -79,8 +75,7 @@ const RouteManagement = () => {
       destination: '',
       type: 'EXPRESS',
       distance: 100,
-      estimatedDuration: 2.0, // Default duration set to 2 hours
-      farePerKm: 0.15,
+      estimatedDuration: 2.0,
       stopsInput: ''
     }
   });
@@ -129,8 +124,7 @@ const RouteManagement = () => {
       destination: '',
       type: 'EXPRESS',
       distance: 100,
-      estimatedDuration: 2.0, // Default to 2 hours
-      farePerKm: 0.15,
+      estimatedDuration: 2.0,
       stopsInput: ''
     });
     setModalOpen(true);
@@ -144,9 +138,7 @@ const RouteManagement = () => {
     setValue('destination', route.destination);
     setValue('type', route.type);
     setValue('distance', route.distance);
-    // Convert minutes from backend back to hours for form input (e.g. 150 mins -> 2.5 hours)
     setValue('estimatedDuration', Number((route.estimatedDuration / 60).toFixed(2)));
-    setValue('farePerKm', route.farePerKm || 0.15);
     setValue('stopsInput', route.stops?.map((s) => s.name).join(', ') || '');
     setModalOpen(true);
   };
@@ -161,7 +153,6 @@ const RouteManagement = () => {
           .filter(Boolean)
       : [];
     
-    // Convert hours from input back to integer minutes for backend validation
     const durationInMinutes = Math.round(data.estimatedDuration * 60);
 
     const stopsCount = stopsList.length;
@@ -185,7 +176,7 @@ const RouteManagement = () => {
       distance: data.distance,
       estimatedDuration: durationInMinutes,
       baseFare: 1.00,
-      farePerKm: data.farePerKm,
+      farePerKm: 0.15, // Default placeholder to satisfy required backend validation
       stops
     };
 
@@ -301,7 +292,6 @@ const RouteManagement = () => {
                   <th className="p-4 sm:p-5">Terminals</th>
                   <th className="p-4 sm:p-5">Stops</th>
                   <th className="p-4 sm:p-5">Distance / Duration</th>
-                  <th className="p-4 sm:p-5">Fare per KM</th>
                   <th className="p-4 sm:p-5 text-right">Actions</th>
                 </tr>
               </thead>
@@ -319,7 +309,6 @@ const RouteManagement = () => {
                     <td className="p-4 sm:p-5">
                       {route.distance} km / <span className="font-semibold text-slate-400">{formatDuration(route.estimatedDuration)}</span>
                     </td>
-                    <td className="p-4 sm:p-5 font-mono text-emerald-450 font-bold">${route.farePerKm?.toFixed(2)}</td>
                     <td className="p-4 sm:p-5 text-right space-x-2">
                       <button
                         onClick={() => handleOpenEdit(route)}
@@ -464,30 +453,16 @@ const RouteManagement = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-455 uppercase tracking-wider">Fare per KM ($)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.15"
-                    {...registerField('farePerKm')}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
-                  />
-                  {errors.farePerKm && <p className="text-red-400 text-[10px] mt-0.5">{errors.farePerKm.message}</p>}
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-455 uppercase tracking-wider">Route Type</label>
-                  <select
-                    {...registerField('type')}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-355"
-                  >
-                    <option value="EXPRESS">Express</option>
-                    <option value="NORMAL">Normal</option>
-                    <option value="HIGHWAY">Highway</option>
-                  </select>
-                </div>
+              <div className="space-y-1.5">
+                <label className="font-semibold text-slate-455 uppercase tracking-wider">Route Type</label>
+                <select
+                  {...registerField('type')}
+                  className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-355"
+                >
+                  <option value="EXPRESS">Express</option>
+                  <option value="NORMAL">Normal</option>
+                  <option value="HIGHWAY">Highway</option>
+                </select>
               </div>
 
               <div className="space-y-1.5">
