@@ -39,7 +39,9 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (error) {
           console.error('Session check failed. Token might be expired:', error);
-          // If token expired, axios response interceptor will auto-clear and redirect
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+          setUser(null);
         }
       }
       setLoading(false);

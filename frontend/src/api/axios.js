@@ -33,8 +33,13 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       
+      const isPublicRoute = 
+        window.location.pathname === '/' || 
+        window.location.pathname === '/search-bus' ||
+        window.location.pathname === '/forbidden';
+
       // Prevent redirect loops if the user is already on the login page
-      if (!window.location.pathname.includes('/login')) {
+      if (!isPublicRoute && !window.location.pathname.includes('/login')) {
         window.location.href = '/login?expired=true';
       }
     }
