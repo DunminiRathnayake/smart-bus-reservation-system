@@ -5,6 +5,7 @@
 
 const mongoose = require('mongoose');
 const Schedule = require('../model/Schedule');
+const Route = require('../../route/model/Route');
 const ScheduleStatus = require('../../../constants/scheduleStatus');
 
 class ScheduleRepository {
@@ -81,7 +82,7 @@ class ScheduleRepository {
 
       // 2.5 Filter by origin / destination (case-insensitive regex match)
       if (origin || destination) {
-        const RouteModel = mongoose.model('Route');
+        const RouteModel = Route;
         const routeQuery = { deletedAt: null };
         if (origin) {
           routeQuery.origin = new RegExp(origin.trim(), 'i');
