@@ -15,20 +15,19 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  Filter,
-  SlidersHorizontal,
   AlertCircle,
   Loader2
 } from 'lucide-react';
 
 const busSchema = z.object({
-  name: z.string().min(2, 'Bus name is required (min 2 characters)'),
+  busNumber: z.string().min(2, 'Bus number is required (min 2 characters)'),
+  busName: z.string().min(2, 'Bus name is required (min 2 characters)'),
   registrationNumber: z.string().min(2, 'Registration plate is required'),
   capacity: z.preprocess(
     (val) => Number(val),
     z.number().min(5, 'Capacity must be at least 5 seats').max(100, 'Capacity cannot exceed 100')
   ),
-  busType: z.string().min(1, 'Bus type is required'),
+  type: z.string().min(1, 'Bus type is required'),
   status: z.string().optional()
 });
 
@@ -66,7 +65,7 @@ const BusManagement = () => {
     formState: { errors }
   } = useForm({
     resolver: zodResolver(busSchema),
-    defaultValues: { name: '', registrationNumber: '', capacity: 40, busType: 'NORMAL', status: 'ACTIVE' }
+    defaultValues: { busNumber: '', busName: '', registrationNumber: '', capacity: 40, type: 'NORMAL', status: 'ACTIVE' }
   });
 
   const fetchBuses = async () => {
@@ -108,16 +107,17 @@ const BusManagement = () => {
 
   const handleOpenAdd = () => {
     setEditingBus(null);
-    reset({ name: '', registrationNumber: '', capacity: 40, busType: 'NORMAL', status: 'ACTIVE' });
+    reset({ busNumber: `BUS-${Math.floor(100 + Math.random() * 900)}`, busName: '', registrationNumber: '', capacity: 40, type: 'NORMAL', status: 'ACTIVE' });
     setModalOpen(true);
   };
 
   const handleOpenEdit = (bus) => {
     setEditingBus(bus);
-    setValue('name', bus.name);
+    setValue('busNumber', bus.busNumber);
+    setValue('busName', bus.busName);
     setValue('registrationNumber', bus.registrationNumber);
     setValue('capacity', bus.capacity);
-    setValue('busType', bus.busType);
+    setValue('type', bus.type);
     setValue('status', bus.status);
     setModalOpen(true);
   };
@@ -206,7 +206,7 @@ const BusManagement = () => {
         <div className="relative flex-grow max-w-xs">
           <input
             type="text"
-            placeholder="Search bus name or plate..."
+            placeholder="Search bus name, number, or plate..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2 pl-9 pr-4 focus:outline-none focus:border-emerald-500 text-xs text-slate-200"
@@ -219,7 +219,7 @@ const BusManagement = () => {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="bg-slate-950 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-slate-350"
+            className="bg-slate-950 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-slate-355"
           >
             <option value="ALL">All Types</option>
             <option value="AC_LUXURY">AC Luxury</option>
@@ -234,7 +234,7 @@ const BusManagement = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-950 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-slate-350"
+            className="bg-slate-950 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-slate-355"
           >
             <option value="ALL">All Status</option>
             <option value="ACTIVE">Active</option>
@@ -267,6 +267,7 @@ const BusManagement = () => {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-950/40 border-b border-slate-850 text-slate-400 font-bold uppercase tracking-wider">
+                  <th className="p-4 sm:p-5">Bus Number</th>
                   <th className="p-4 sm:p-5">Bus Name</th>
                   <th className="p-4 sm:p-5">Plate Number</th>
                   <th className="p-4 sm:p-5">Capacity</th>
@@ -278,10 +279,11 @@ const BusManagement = () => {
               <tbody className="divide-y divide-slate-850/80">
                 {buses.map((bus) => (
                   <tr key={bus._id} className="hover:bg-slate-850/20 text-slate-300 transition-colors">
-                    <td className="p-4 sm:p-5 font-semibold text-slate-200">{bus.name}</td>
-                    <td className="p-4 sm:p-5 font-mono text-slate-400">{bus.registrationNumber}</td>
+                    <td className="p-4 sm:p-5 font-mono text-emerald-450 font-bold">{bus.busNumber}</td>
+                    <td className="p-4 sm:p-5 font-semibold text-slate-200">{bus.busName}</td>
+                    <td className="p-4 sm:p-5 font-mono text-slate-450">{bus.registrationNumber}</td>
                     <td className="p-4 sm:p-5">{bus.capacity} Seats</td>
-                    <td className="p-4 sm:p-5 capitalize">{bus.busType?.toLowerCase().replace('_', ' ')}</td>
+                    <td className="p-4 sm:p-5 capitalize">{bus.type?.toLowerCase().replace('_', ' ')}</td>
                     <td className="p-4 sm:p-5">{getStatusBadge(bus.status)}</td>
                     <td className="p-4 sm:p-5 text-right space-x-2">
                       <button
@@ -307,7 +309,7 @@ const BusManagement = () => {
         ) : (
           <EmptyState
             title="No Buses Configured"
-            description="Clear search queries or click Add Bus to register vehicles to your fleet."
+            description="Clear search queries or click Add Bus to begin fleet setup."
           />
         )}
       </div>
@@ -354,15 +356,28 @@ const BusManagement = () => {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 relative z-10 text-xs text-slate-300">
-              <div className="space-y-1.5">
-                <label className="font-semibold text-slate-450 uppercase tracking-wider">Bus Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Emerald Super Liner"
-                  {...registerField('name')}
-                  className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
-                />
-                {errors.name && <p className="text-red-400 text-[10px] mt-0.5">{errors.name.message}</p>}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-slate-450 uppercase tracking-wider">Bus Number</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. BUS-409"
+                    {...registerField('busNumber')}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200 font-mono"
+                  />
+                  {errors.busNumber && <p className="text-red-400 text-[10px] mt-0.5">{errors.busNumber.message}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-slate-450 uppercase tracking-wider">Bus Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Emerald Super Liner"
+                    {...registerField('busName')}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
+                  />
+                  {errors.busName && <p className="text-red-400 text-[10px] mt-0.5">{errors.busName.message}</p>}
+                </div>
               </div>
 
               <div className="space-y-1.5">
@@ -389,10 +404,10 @@ const BusManagement = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-450 uppercase tracking-wider">Bus Type</label>
+                  <label className="font-semibold text-slate-455 uppercase tracking-wider">Bus Type</label>
                   <select
-                    {...registerField('busType')}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-350"
+                    {...registerField('type')}
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-355"
                   >
                     <option value="AC_LUXURY">AC Luxury</option>
                     <option value="SUPER_LUXURY">Super Luxury</option>
@@ -404,10 +419,10 @@ const BusManagement = () => {
 
               {editingBus && (
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-450 uppercase tracking-wider">Status</label>
+                  <label className="font-semibold text-slate-455 uppercase tracking-wider">Status</label>
                   <select
                     {...registerField('status')}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-350"
+                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-355"
                   >
                     <option value="ACTIVE">Active</option>
                     <option value="INACTIVE">Inactive</option>
