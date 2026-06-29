@@ -17,42 +17,39 @@ const {
 } = require('../validation/seatValidation');
 const validate = require('../../../middleware/validate');
 
-// Protect all seat endpoints with JWT authentication and require the ADMIN role globally
-router.use(authenticate, authorize('ADMIN'));
-
 /**
  * @route   POST /api/v1/schedules/:scheduleId/seats/generate
  * @desc    Generate seats for a schedule (Admin only)
  * @access  Private/Admin
  */
-router.post('/:scheduleId/seats/generate', generateSeatsRules, validate, seatController.generateSeats);
+router.post('/:scheduleId/seats/generate', authenticate, authorize('ADMIN'), generateSeatsRules, validate, seatController.generateSeats);
 
 /**
  * @route   GET /api/v1/schedules/:scheduleId/seats
- * @desc    Get all seats for a schedule (Admin only, supports filtering by status)
- * @access  Private/Admin
+ * @desc    Get all seats for a schedule (Admin & Passenger access)
+ * @access  Private
  */
-router.get('/:scheduleId/seats', getSeatsRules, validate, seatController.getSeats);
+router.get('/:scheduleId/seats', authenticate, getSeatsRules, validate, seatController.getSeats);
 
 /**
  * @route   GET /api/v1/schedules/:scheduleId/seats/:seatId
- * @desc    Retrieve seat details by ID (Admin only)
- * @access  Private/Admin
+ * @desc    Retrieve seat details by ID (Admin & Passenger access)
+ * @access  Private
  */
-router.get('/:scheduleId/seats/:seatId', getSeatRules, validate, seatController.getSeat);
+router.get('/:scheduleId/seats/:seatId', authenticate, getSeatRules, validate, seatController.getSeat);
 
 /**
  * @route   PATCH /api/v1/schedules/:scheduleId/seats/:seatId/status
  * @desc    Update seat status by ID (Admin only)
  * @access  Private/Admin
  */
-router.patch('/:scheduleId/seats/:seatId/status', updateStatusRules, validate, seatController.updateStatus);
+router.patch('/:scheduleId/seats/:seatId/status', authenticate, authorize('ADMIN'), updateStatusRules, validate, seatController.updateStatus);
 
 /**
  * @route   DELETE /api/v1/schedules/:scheduleId/seats
  * @desc    Delete all seats for a schedule (Admin only)
  * @access  Private/Admin
  */
-router.delete('/:scheduleId/seats', deleteSeatsRules, validate, seatController.deleteSeats);
+router.delete('/:scheduleId/seats', authenticate, authorize('ADMIN'), deleteSeatsRules, validate, seatController.deleteSeats);
 
 module.exports = router;
