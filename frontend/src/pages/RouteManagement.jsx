@@ -33,10 +33,6 @@ const routeSchema = z.object({
     (val) => Number(val),
     z.number().min(1, 'Estimated duration must be at least 1 minute')
   ),
-  baseFare: z.preprocess(
-    (val) => Number(val),
-    z.number().min(1, 'Base fare must be at least $1')
-  ),
   farePerKm: z.preprocess(
     (val) => Number(val),
     z.number().min(0.01, 'Fare per km must be at least $0.01')
@@ -84,7 +80,6 @@ const RouteManagement = () => {
       type: 'EXPRESS',
       distance: 100,
       estimatedDuration: 120,
-      baseFare: 15,
       farePerKm: 0.15,
       stopsInput: ''
     }
@@ -135,7 +130,6 @@ const RouteManagement = () => {
       type: 'EXPRESS',
       distance: 100,
       estimatedDuration: 120,
-      baseFare: 15,
       farePerKm: 0.15,
       stopsInput: ''
     });
@@ -151,7 +145,6 @@ const RouteManagement = () => {
     setValue('type', route.type);
     setValue('distance', route.distance);
     setValue('estimatedDuration', route.estimatedDuration);
-    setValue('baseFare', route.baseFare);
     setValue('farePerKm', route.farePerKm || 0.15);
     setValue('stopsInput', route.stops?.map((s) => s.name).join(', ') || '');
     setModalOpen(true);
@@ -187,7 +180,7 @@ const RouteManagement = () => {
       type: data.type,
       distance: data.distance,
       estimatedDuration: data.estimatedDuration,
-      baseFare: data.baseFare,
+      baseFare: 1.00, // Hardcoded default to satisfy required backend schema validation
       farePerKm: data.farePerKm,
       stops
     };
@@ -305,7 +298,7 @@ const RouteManagement = () => {
                   <th className="p-4 sm:p-5">Terminals</th>
                   <th className="p-4 sm:p-5">Stops</th>
                   <th className="p-4 sm:p-5">Distance / Duration</th>
-                  <th className="p-4 sm:p-5">Base Fare</th>
+                  <th className="p-4 sm:p-5">Fare per KM</th>
                   <th className="p-4 sm:p-5 text-right">Actions</th>
                 </tr>
               </thead>
@@ -323,7 +316,7 @@ const RouteManagement = () => {
                     <td className="p-4 sm:p-5">
                       {route.distance} km / <span className="font-semibold text-slate-400">{formatDuration(route.estimatedDuration)}</span>
                     </td>
-                    <td className="p-4 sm:p-5 font-mono text-emerald-400 font-bold">${route.baseFare?.toFixed(2)}</td>
+                    <td className="p-4 sm:p-5 font-mono text-emerald-400 font-bold">${route.farePerKm?.toFixed(2)}</td>
                     <td className="p-4 sm:p-5 text-right space-x-2">
                       <button
                         onClick={() => handleOpenEdit(route)}
@@ -443,7 +436,7 @@ const RouteManagement = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="font-semibold text-slate-455 uppercase tracking-wider">Distance (km)</label>
                   <input
@@ -464,17 +457,6 @@ const RouteManagement = () => {
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
                   />
                   {errors.estimatedDuration && <p className="text-red-400 text-[10px] mt-0.5">{errors.estimatedDuration.message}</p>}
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-455 uppercase tracking-wider">Base Fare ($)</label>
-                  <input
-                    type="number"
-                    placeholder="15"
-                    {...registerField('baseFare')}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
-                  />
-                  {errors.baseFare && <p className="text-red-400 text-[10px] mt-0.5">{errors.baseFare.message}</p>}
                 </div>
               </div>
 
