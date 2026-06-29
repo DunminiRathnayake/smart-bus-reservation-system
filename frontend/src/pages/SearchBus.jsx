@@ -21,25 +21,47 @@ import {
 
 const formatTime = (isoString) => {
   if (!isoString) return 'N/A';
-  return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return String(isoString);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  } catch (e) {
+    return String(isoString);
+  }
 };
 
 const formatDate = (isoString) => {
   if (!isoString) return 'N/A';
-  return new Date(isoString).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return String(isoString);
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch (e) {
+    return String(isoString);
+  }
 };
 
 const getDurationText = (schedule) => {
-  if (schedule.routeId?.estimatedDuration) {
-    const minutes = schedule.routeId.estimatedDuration;
-    const hrs = minutes / 60;
-    return `${Number(hrs.toFixed(2))}h`;
-  }
-  if (schedule.departureTime && schedule.arrivalTime) {
-    const diffMs = new Date(schedule.arrivalTime) - new Date(schedule.departureTime);
-    const diffMins = Math.round(diffMs / 60000);
-    const hrs = diffMins / 60;
-    return `${Number(hrs.toFixed(2))}h`;
+  try {
+    if (schedule.routeId?.estimatedDuration) {
+      const minutes = Number(schedule.routeId.estimatedDuration);
+      if (!isNaN(minutes)) {
+        const hrs = minutes / 60;
+        return `${Number(hrs.toFixed(2))}h`;
+      }
+    }
+    if (schedule.departureTime && schedule.arrivalTime) {
+      const dep = new Date(schedule.departureTime);
+      const arr = new Date(schedule.arrivalTime);
+      if (!isNaN(dep.getTime()) && !isNaN(arr.getTime())) {
+        const diffMs = arr - dep;
+        const diffMins = Math.round(diffMs / 60000);
+        const hrs = diffMins / 60;
+        return `${Number(hrs.toFixed(2))}h`;
+      }
+    }
+  } catch (e) {
+    console.error('Error getting duration text:', e);
   }
   return 'N/A';
 };
@@ -311,22 +333,34 @@ const SearchBus = () => {
         ) : filteredSchedules.length > 0 ? (
           <div className="grid grid-cols-1 gap-4">
             {filteredSchedules.map((schedule) => {
-              const baseFare = schedule.fare || (schedule.routeId && schedule.routeId.baseFare) || 0;
-              const availableSeats = schedule.availableSeats !== undefined ? schedule.availableSeats : 40; // Default or calculated seats
+              // Ensure baseFare is a safe numeric representation or fallback
+              let baseFareNum = 0;
+              const rawFare = schedule.fare || (schedule.routeId && schedule.routeId.baseFare);
+              if (rawFare) {
+                if (typeof rawFare === 'object' && rawFare.$numberDecimal) {
+                  baseFareNum = parseFloat(rawFare.$numberDecimal) || 0;
+                } else if (typeof rawFare === 'object' && rawFare.toString) {
+                  baseFareNum = parseFloat(rawFare.toString()) || 0;
+                } else {
+                  baseFareNum = parseFloat(rawFare) || 0;
+                }
+              }
+
+              const availableSeats = schedule.availableSeats !== undefined ? Number(schedule.availableSeats) : 40;
 
               return (
                 <div
-                  key={schedule._id}
+                  key={String(schedule._id)}
                   className="bg-slate-900 border border-slate-850 hover:border-emerald-500/30 rounded-2xl p-5 sm:p-6 transition-all duration-300 shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-5 hover:translate-x-1"
                 >
                   <div className="space-y-3.5 flex-grow">
                     {/* Header: Bus Info */}
                     <div className="flex flex-wrap items-center gap-3">
                       <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 border border-emerald-500/20 rounded-md">
-                        {schedule.busId?.name || 'SmartGo Express'}
+                        {schedule.busId?.busName ? String(schedule.busId.busName) : 'SmartGo Express'}
                       </span>
                       <span className="text-[10px] text-slate-500 font-semibold uppercase">
-                        {schedule.busId?.busType || 'Luxury AC'}
+                        {schedule.busId?.type ? String(schedule.busId.type) : 'Luxury AC'}
                       </span>
                     </div>
 
@@ -334,22 +368,22 @@ const SearchBus = () => {
                     <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
                       <div>
                         <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-                          <Clock className="h-4 w-4 text-slate-550" />
+                          <Clock className="h-4 w-4 text-slate-500" />
                           <span>{formatTime(schedule.departureTime)}</span>
                         </div>
                         <p className="text-[10px] text-slate-500 font-semibold">{formatDate(schedule.departureTime)}</p>
-                        <p className="text-xs font-bold text-slate-300 mt-1">{schedule.routeId?.origin}</p>
+                        <p className="text-xs font-bold text-slate-300 mt-1">{schedule.routeId?.origin ? String(schedule.routeId.origin) : ''}</p>
                       </div>
                       
                       <ArrowRight className="h-4 w-4 text-emerald-500/40" />
 
                       <div>
                         <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-                          <Clock className="h-4 w-4 text-slate-550" />
+                          <Clock className="h-4 w-4 text-slate-500" />
                           <span>{formatTime(schedule.arrivalTime)}</span>
                         </div>
                         <p className="text-[10px] text-slate-500 font-semibold">{formatDate(schedule.arrivalTime)}</p>
-                        <p className="text-xs font-bold text-slate-300 mt-1">{schedule.routeId?.destination}</p>
+                        <p className="text-xs font-bold text-slate-300 mt-1">{schedule.routeId?.destination ? String(schedule.routeId.destination) : ''}</p>
                       </div>
 
                       <div className="border-l border-slate-800 pl-4 sm:pl-6 text-xs text-slate-400">
@@ -363,7 +397,7 @@ const SearchBus = () => {
                   <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto border-t md:border-t-0 border-slate-850 pt-4 md:pt-0 gap-4">
                     <div className="flex items-center text-xl font-mono font-black text-emerald-400">
                       <DollarSign className="h-5 w-5 text-emerald-500" />
-                      <span>{baseFare.toFixed(2)}</span>
+                      <span>{baseFareNum.toFixed(2)}</span>
                     </div>
 
                     <button
