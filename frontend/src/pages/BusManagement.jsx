@@ -107,7 +107,7 @@ const BusManagement = () => {
 
   const handleOpenAdd = () => {
     setEditingBus(null);
-    reset({ busNumber: `BUS-${Math.floor(100 + Math.random() * 900)}`, busName: '', registrationNumber: '', capacity: 40, type: 'NORMAL', status: 'ACTIVE' });
+    reset({ busNumber: `BUS-${Math.floor(100 + Math.random() * 900)}`, busName: '', registrationNumber: '', capacity: 40, type: 'AC', status: 'ACTIVE' });
     setModalOpen(true);
   };
 
@@ -211,26 +211,27 @@ const BusManagement = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2 pl-9 pr-4 focus:outline-none focus:border-emerald-500 text-xs text-slate-200"
           />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-550" />
         </div>
 
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-slate-500">Type:</span>
+          <span className="text-slate-500 font-semibold">Type:</span>
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
             className="bg-slate-950 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-slate-355"
           >
             <option value="ALL">All Types</option>
-            <option value="AC_LUXURY">AC Luxury</option>
-            <option value="SUPER_LUXURY">Super Luxury</option>
-            <option value="AC_SEMI_LUXURY">AC Semi Luxury</option>
-            <option value="NORMAL">Normal</option>
+            <option value="AC">AC</option>
+            <option value="NON_AC">Non AC</option>
+            <option value="SEMI_LUXURY">Semi Luxury</option>
+            <option value="LUXURY">Luxury</option>
+            <option value="SLEEPER">Sleeper</option>
           </select>
         </div>
 
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-slate-500">Status:</span>
+          <span className="text-slate-500 font-semibold">Status:</span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -409,10 +410,11 @@ const BusManagement = () => {
                     {...registerField('type')}
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-355"
                   >
-                    <option value="AC_LUXURY">AC Luxury</option>
-                    <option value="SUPER_LUXURY">Super Luxury</option>
-                    <option value="AC_SEMI_LUXURY">AC Semi Luxury</option>
-                    <option value="NORMAL">Normal</option>
+                    <option value="AC">AC</option>
+                    <option value="NON_AC">Non AC</option>
+                    <option value="SEMI_LUXURY">Semi Luxury</option>
+                    <option value="LUXURY">Luxury</option>
+                    <option value="SLEEPER">Sleeper</option>
                   </select>
                 </div>
               </div>
