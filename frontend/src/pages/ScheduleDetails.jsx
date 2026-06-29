@@ -18,6 +18,28 @@ import {
   AlertCircle
 } from 'lucide-react';
 
+const formatTime = (isoString) => {
+  if (!isoString) return 'N/A';
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return String(isoString);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  } catch (e) {
+    return String(isoString);
+  }
+};
+
+const formatDate = (isoString) => {
+  if (!isoString) return 'N/A';
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return String(isoString);
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch (e) {
+    return String(isoString);
+  }
+};
+
 /**
  * ScheduleDetails page rendering stops log, amenities list, and booking stepper navigation.
  */
@@ -74,7 +96,19 @@ const ScheduleDetails = () => {
     );
   }
 
-  const baseFare = schedule.fare || (schedule.routeId && schedule.routeId.fare) || 0;
+  // Ensure baseFare is safely formatted
+  let baseFareNum = 0;
+  const rawFare = schedule.fare || (schedule.routeId && schedule.routeId.baseFare);
+  if (rawFare) {
+    if (typeof rawFare === 'object' && rawFare.$numberDecimal) {
+      baseFareNum = parseFloat(rawFare.$numberDecimal) || 0;
+    } else if (typeof rawFare === 'object' && rawFare.toString) {
+      baseFareNum = parseFloat(rawFare.toString()) || 0;
+    } else {
+      baseFareNum = parseFloat(rawFare) || 0;
+    }
+  }
+
   const stopsList = schedule.routeId?.stops || [];
   const defaultAmenities = ['Wi-Fi', 'USB Charging Port', 'Water Bottle', 'Reclining Seats', 'Air Conditioning'];
 
@@ -132,24 +166,27 @@ const ScheduleDetails = () => {
               {/* Origin */}
               <div className="relative">
                 <div className="absolute -left-[20px] top-1 h-3.5 w-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full" />
-                <p className="text-xs font-bold text-slate-200">{schedule.routeId?.origin}</p>
-                <span className="text-[10px] text-slate-500 font-semibold">Departure at {schedule.departureTime}</span>
+                <p className="text-xs font-bold text-slate-200">{schedule.routeId?.origin ? String(schedule.routeId.origin) : ''}</p>
+                <p className="text-[10px] text-slate-500 font-semibold">{formatDate(schedule.departureTime)} at {formatTime(schedule.departureTime)}</p>
               </div>
 
               {/* Stops */}
-              {stopsList.map((stop, idx) => (
-                <div key={idx} className="relative">
-                  <div className="absolute -left-[20px] top-1 h-3.5 w-3.5 bg-slate-800 border-2 border-slate-900 rounded-full" />
-                  <p className="text-xs font-medium text-slate-400">{stop}</p>
-                  <span className="text-[10px] text-slate-550">Intermediate Station</span>
-                </div>
-              ))}
+              {stopsList.map((stop, idx) => {
+                const stopName = typeof stop === 'string' ? stop : (stop?.name || '');
+                return (
+                  <div key={idx} className="relative">
+                    <div className="absolute -left-[20px] top-1 h-3.5 w-3.5 bg-slate-800 border-2 border-slate-900 rounded-full" />
+                    <p className="text-xs font-medium text-slate-400">{stopName}</p>
+                    <span className="text-[10px] text-slate-550">Intermediate Station</span>
+                  </div>
+                );
+              })}
 
               {/* Destination */}
               <div className="relative">
                 <div className="absolute -left-[20px] top-1 h-3.5 w-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full animate-ping-slow" />
-                <p className="text-xs font-bold text-slate-200">{schedule.routeId?.destination}</p>
-                <span className="text-[10px] text-slate-500 font-semibold">Arrival at {schedule.arrivalTime || 'Next Day'}</span>
+                <p className="text-xs font-bold text-slate-200">{schedule.routeId?.destination ? String(schedule.routeId.destination) : ''}</p>
+                <p className="text-[10px] text-slate-500 font-semibold">{formatDate(schedule.arrivalTime)} at {formatTime(schedule.arrivalTime)}</p>
               </div>
             </div>
           </div>
@@ -160,7 +197,7 @@ const ScheduleDetails = () => {
           {/* Price & Book now action */}
           <div className="bg-slate-900 border border-slate-850 rounded-2xl p-6 space-y-4 shadow-md">
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Ticket Price</span>
-            <div className="text-3xl font-mono font-black text-emerald-400">${baseFare.toFixed(2)}</div>
+            <div className="text-3xl font-mono font-black text-emerald-400">${baseFareNum.toFixed(2)}</div>
             <p className="text-xs text-slate-500 leading-relaxed">
               Fares include service tax, seat reservations, and priority onboarding baggage.
             </p>

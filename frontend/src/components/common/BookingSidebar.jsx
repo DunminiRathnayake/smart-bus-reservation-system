@@ -7,9 +7,42 @@ import { Calendar, Compass, CreditCard, ShieldCheck } from 'lucide-react';
 const BookingSidebar = ({ schedule, selectedSeats = [] }) => {
   if (!schedule) return null;
 
-  // Retrieve base fare from schedule
-  const baseFare = schedule.fare || (schedule.routeId && schedule.routeId.fare) || 0;
+  // Ensure baseFare is safely formatted
+  let baseFare = 0;
+  const rawFare = schedule.fare || (schedule.routeId && schedule.routeId.baseFare);
+  if (rawFare) {
+    if (typeof rawFare === 'object' && rawFare.$numberDecimal) {
+      baseFare = parseFloat(rawFare.$numberDecimal) || 0;
+    } else if (typeof rawFare === 'object' && rawFare.toString) {
+      baseFare = parseFloat(rawFare.toString()) || 0;
+    } else {
+      baseFare = parseFloat(rawFare) || 0;
+    }
+  }
+
   const totalFare = selectedSeats.length * baseFare;
+
+  const formatTime = (isoString) => {
+    if (!isoString) return 'N/A';
+    try {
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return String(isoString);
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    } catch (e) {
+      return String(isoString);
+    }
+  };
+
+  const formatDate = (isoString) => {
+    if (!isoString) return 'N/A';
+    try {
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return String(isoString);
+      return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch (e) {
+      return String(isoString);
+    }
+  };
 
   return (
     <div className="bg-slate-900 border border-slate-850 rounded-2xl p-5 space-y-5 h-fit shadow-xl">
@@ -24,7 +57,7 @@ const BookingSidebar = ({ schedule, selectedSeats = [] }) => {
           <div className="space-y-0.5">
             <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Route Details</span>
             <p className="text-xs font-bold text-slate-350">
-              {schedule.routeId?.origin || 'Origin'} ➔ {schedule.routeId?.destination || 'Destination'}
+              {schedule.routeId?.origin ? String(schedule.routeId.origin) : 'Origin'} ➔ {schedule.routeId?.destination ? String(schedule.routeId.destination) : 'Destination'}
             </p>
           </div>
         </div>
@@ -34,7 +67,7 @@ const BookingSidebar = ({ schedule, selectedSeats = [] }) => {
           <div className="space-y-0.5">
             <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Departure Log</span>
             <p className="text-xs font-bold text-slate-350">
-              {schedule.travelDate ? new Date(schedule.travelDate).toLocaleDateString() : 'N/A'} at {schedule.departureTime || 'N/A'}
+              {formatDate(schedule.departureTime)} at {formatTime(schedule.departureTime)}
             </p>
           </div>
         </div>

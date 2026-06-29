@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import scheduleService from '../services/scheduleService';
 import BookingStepper from '../components/common/BookingStepper';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
@@ -16,8 +16,31 @@ import {
   Filter,
   SlidersHorizontal,
   ChevronRight,
-  DollarSign
+  DollarSign,
+  Sparkles,
+  Map as MapIcon,
+  CalendarDays,
+  CheckCircle2,
+  ChevronLeft,
+  Info,
+  Navigation
 } from 'lucide-react';
+
+// Sri Lankan major cities with coordinate mappings for the interactive SVG route map
+const SRI_LANKA_COORDS = {
+  colombo: { x: 105, y: 270, name: 'Colombo' },
+  negombo: { x: 98, y: 235, name: 'Negombo' },
+  kandy: { x: 145, y: 215, name: 'Kandy' },
+  kurunegala: { x: 125, y: 190, name: 'Kurunegala' },
+  matara: { x: 125, y: 355, name: 'Matara' },
+  galle: { x: 105, y: 335, name: 'Galle' },
+  ella: { x: 165, y: 260, name: 'Ella' },
+  kataragama: { x: 175, y: 315, name: 'Kataragama' },
+  jaffna: { x: 100, y: 45, name: 'Jaffna' },
+  trincomalee: { x: 165, y: 130, name: 'Trincomalee' },
+  batticaloa: { x: 195, y: 190, name: 'Batticaloa' },
+  panadura: { x: 106, y: 290, name: 'Panadura' }
+};
 
 const formatTime = (isoString) => {
   if (!isoString) return 'N/A';
@@ -85,13 +108,14 @@ const SearchBus = () => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [busType, setBusType] = useState('ALL');
   const [maxPrice, setMaxPrice] = useState(100);
-  const [timeOfDay, setTimeOfDay] = useState('ALL'); // 'ALL' | 'MORNING' | 'AFTERNOON' | 'EVENING'
-  const [sortBy, setSortBy] = useState('TIME_EARLIEST'); // 'PRICE_LOW' | 'PRICE_HIGH' | 'TIME_EARLIEST' | 'TIME_LATEST'
+  const [timeOfDay, setTimeOfDay] = useState('ALL');
+  const [sortBy, setSortBy] = useState('TIME_EARLIEST');
 
   const [schedules, setSchedules] = useState([]);
   const [filteredSchedules, setFilteredSchedules] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [expandedScheduleId, setExpandedScheduleId] = useState(null);
 
   const fetchSchedules = async () => {
     if (!filters.origin || !filters.destination) {
@@ -137,20 +161,31 @@ const SearchBus = () => {
     // Filter by Bus Type
     if (busType !== 'ALL') {
       result = result.filter(
-        (s) => s.busId?.busType === busType
+        (s) => s.busId?.type === busType
       );
     }
 
     // Filter by Max Price
-    result = result.filter(
-      (s) => (s.fare || (s.routeId && s.routeId.fare) || 0) <= maxPrice
-    );
+    result = result.filter((s) => {
+      let baseFareNum = 0;
+      const rawFare = s.fare || (s.routeId && s.routeId.baseFare);
+      if (rawFare) {
+        if (typeof rawFare === 'object' && rawFare.$numberDecimal) {
+          baseFareNum = parseFloat(rawFare.$numberDecimal) || 0;
+        } else {
+          baseFareNum = parseFloat(rawFare) || 0;
+        }
+      }
+      return baseFareNum <= maxPrice;
+    });
 
     // Filter by Time of Day
     if (timeOfDay !== 'ALL') {
       result = result.filter((s) => {
         if (!s.departureTime) return false;
-        const hour = parseInt(s.departureTime.split(':')[0], 10);
+        const d = new Date(s.departureTime);
+        if (isNaN(d.getTime())) return true;
+        const hour = d.getHours();
         if (timeOfDay === 'MORNING') return hour >= 6 && hour < 12;
         if (timeOfDay === 'AFTERNOON') return hour >= 12 && hour < 17;
         if (timeOfDay === 'EVENING') return hour >= 17 && hour < 22;
@@ -161,14 +196,23 @@ const SearchBus = () => {
 
     // Sort Results
     result.sort((a, b) => {
-      const fareA = a.fare || (a.routeId && a.routeId.fare) || 0;
-      const fareB = b.fare || (b.routeId && b.routeId.fare) || 0;
+      let fareA = 0;
+      const rawFareA = a.fare || (a.routeId && a.routeId.baseFare);
+      if (rawFareA) {
+        fareA = typeof rawFareA === 'object' && rawFareA.$numberDecimal ? parseFloat(rawFareA.$numberDecimal) : parseFloat(rawFareA);
+      }
+
+      let fareB = 0;
+      const rawFareB = b.fare || (b.routeId && b.routeId.baseFare);
+      if (rawFareB) {
+        fareB = typeof rawFareB === 'object' && rawFareB.$numberDecimal ? parseFloat(rawFareB.$numberDecimal) : parseFloat(rawFareB);
+      }
 
       if (sortBy === 'PRICE_LOW') return fareA - fareB;
       if (sortBy === 'PRICE_HIGH') return fareB - fareA;
 
-      const timeA = a.departureTime || '00:00';
-      const timeB = b.departureTime || '00:00';
+      const timeA = a.departureTime || '';
+      const timeB = b.departureTime || '';
       if (sortBy === 'TIME_EARLIEST') return timeA.localeCompare(timeB);
       if (sortBy === 'TIME_LATEST') return timeB.localeCompare(timeA);
 
@@ -185,20 +229,49 @@ const SearchBus = () => {
     }
   }, []);
 
+  // Automatically trigger search when date carousel is selected
+  useEffect(() => {
+    if (filters.origin && filters.destination && hasSearched) {
+      fetchSchedules();
+    }
+  }, [filters.travelDate]);
+
+  // Generate 7 consecutive dates around the active travelDate
+  const getDateCarouselOptions = () => {
+    const baseDate = filters.travelDate ? new Date(filters.travelDate) : new Date();
+    if (isNaN(baseDate.getTime())) return [];
+    
+    const options = [];
+    for (let i = -2; i <= 4; i++) {
+      const d = new Date(baseDate);
+      d.setDate(baseDate.getDate() + i);
+      options.push(d);
+    }
+    return options;
+  };
+
+  const carouselDates = getDateCarouselOptions();
+
+  // Map coordinates resolving for origin and destination
+  const originKey = filters.origin ? filters.origin.trim().toLowerCase() : '';
+  const destKey = filters.destination ? filters.destination.trim().toLowerCase() : '';
+  const mapOrigin = SRI_LANKA_COORDS[originKey] || null;
+  const mapDest = SRI_LANKA_COORDS[destKey] || null;
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto px-4">
       {/* Stepper progress indicator */}
       <BookingStepper currentStep={1} />
 
-      {/* Main Search Panel */}
-      <div className="bg-slate-900 border border-slate-850 p-6 sm:p-8 rounded-3xl shadow-xl relative">
+      {/* Main Search Panel - Magiya style */}
+      <div className="bg-slate-900 border border-slate-850 p-6 sm:p-8 rounded-3xl shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
         
         <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2 relative z-10">
-          <Compass className="h-5 w-5 text-emerald-400" /> Find Bus Departures
+          <Compass className="h-5 w-5 text-emerald-400 animate-spin-slow" /> Find Bus Departures
         </h2>
 
-        {/* Inputs */}
+        {/* Search Inputs */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6 relative z-10">
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
@@ -206,7 +279,7 @@ const SearchBus = () => {
             </label>
             <input
               type="text"
-              placeholder="e.g. Colombo"
+              placeholder="e.g. Negombo"
               value={filters.origin}
               onChange={(e) => setFilters({ ...filters, origin: e.target.value })}
               className="w-full bg-slate-950 border border-slate-850 rounded-xl py-3 px-4 focus:outline-none focus:border-emerald-500 text-sm text-slate-200"
@@ -219,7 +292,7 @@ const SearchBus = () => {
             </label>
             <input
               type="text"
-              placeholder="e.g. Kandy"
+              placeholder="e.g. Colombo"
               value={filters.destination}
               onChange={(e) => setFilters({ ...filters, destination: e.target.value })}
               className="w-full bg-slate-950 border border-slate-850 rounded-xl py-3 px-4 focus:outline-none focus:border-emerald-500 text-sm text-slate-200"
@@ -243,7 +316,7 @@ const SearchBus = () => {
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-slate-850/80 relative z-10">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-emerald-400 transition-colors"
+            className="flex items-center gap-2 text-xs font-semibold text-slate-450 hover:text-emerald-400 transition-colors"
           >
             <SlidersHorizontal className="h-4 w-4" />
             {showAdvanced ? 'Hide Advanced Filters' : 'Show Advanced Filters'}
@@ -251,7 +324,7 @@ const SearchBus = () => {
 
           <button
             onClick={fetchSchedules}
-            className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-slate-950 font-bold transition-all shadow-md shadow-emerald-500/10"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-slate-950 font-bold transition-all shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/20"
             disabled={loading}
           >
             {loading ? 'Searching...' : 'Search Departures'}
@@ -263,28 +336,29 @@ const SearchBus = () => {
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 mt-6 pt-6 border-t border-slate-850/80 relative z-10 animate-slide-in">
             {/* Bus Type */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-550 uppercase tracking-wider">Bus Type</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Bus Type</label>
               <select
                 value={busType}
                 onChange={(e) => setBusType(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-xs text-slate-350"
+                className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-xs text-slate-300"
               >
                 <option value="ALL">All Types</option>
-                <option value="AC_LUXURY">AC Luxury</option>
-                <option value="SUPER_LUXURY">Super Luxury</option>
-                <option value="AC_SEMI_LUXURY">AC Semi Luxury</option>
-                <option value="NORMAL">Normal</option>
+                <option value="AC">AC</option>
+                <option value="NON_AC">Non-AC</option>
+                <option value="LUXURY">Luxury</option>
+                <option value="SEMI_LUXURY">Semi-Luxury</option>
+                <option value="SLEEPER">Sleeper</option>
               </select>
             </div>
 
             {/* Max Price */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-555 uppercase tracking-wider">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                 Max Fare: ${maxPrice}
               </label>
               <input
                 type="range"
-                min="5"
+                min="1"
                 max="200"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(parseInt(e.target.value))}
@@ -294,11 +368,11 @@ const SearchBus = () => {
 
             {/* Time range */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-550 uppercase tracking-wider">Departure Time</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Departure Time</label>
               <select
                 value={timeOfDay}
                 onChange={(e) => setTimeOfDay(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-xs text-slate-355"
+                className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-xs text-slate-300"
               >
                 <option value="ALL">Any Time</option>
                 <option value="MORNING">Morning (6 AM - 12 PM)</option>
@@ -310,11 +384,11 @@ const SearchBus = () => {
 
             {/* Sort Order */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-550 uppercase tracking-wider">Sort By</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sort By</label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-xs text-slate-355"
+                className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-xs text-slate-300"
               >
                 <option value="TIME_EARLIEST">Time: Earliest Departure</option>
                 <option value="TIME_LATEST">Time: Latest Departure</option>
@@ -326,101 +400,360 @@ const SearchBus = () => {
         )}
       </div>
 
-      {/* Results Listings */}
-      <div className="space-y-4">
-        {loading ? (
-          <LoadingSkeleton type="card" count={3} />
-        ) : filteredSchedules.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4">
-            {filteredSchedules.map((schedule) => {
-              // Ensure baseFare is a safe numeric representation or fallback
-              let baseFareNum = 0;
-              const rawFare = schedule.fare || (schedule.routeId && schedule.routeId.baseFare);
-              if (rawFare) {
-                if (typeof rawFare === 'object' && rawFare.$numberDecimal) {
-                  baseFareNum = parseFloat(rawFare.$numberDecimal) || 0;
-                } else if (typeof rawFare === 'object' && rawFare.toString) {
-                  baseFareNum = parseFloat(rawFare.toString()) || 0;
-                } else {
-                  baseFareNum = parseFloat(rawFare) || 0;
-                }
-              }
+      {/* Date Carousel Slider - Magiya style */}
+      {hasSearched && carouselDates.length > 0 && (
+        <div className="flex items-center justify-between bg-slate-900/50 border border-slate-850 p-3 rounded-2xl max-w-4xl mx-auto shadow-sm">
+          <button
+            onClick={() => {
+              const prev = new Date(filters.travelDate);
+              prev.setDate(prev.getDate() - 1);
+              setFilters(f => ({ ...f, travelDate: prev.toISOString().split('T')[0] }));
+            }}
+            className="p-2 hover:bg-slate-850 rounded-xl text-slate-400 hover:text-slate-200 transition-colors"
+          >
+            <ChevronLeft className="h-4.5 w-4.5" />
+          </button>
 
-              const availableSeats = schedule.availableSeats !== undefined ? Number(schedule.availableSeats) : 40;
+          <div className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar py-1">
+            {carouselDates.map((date, idx) => {
+              const formatted = date.toISOString().split('T')[0];
+              const isSelected = formatted === filters.travelDate;
+              const dayStr = date.toLocaleDateString([], { weekday: 'short' });
+              const dateStr = date.toLocaleDateString([], { day: '2-digit', month: 'short' });
 
               return (
-                <div
-                  key={String(schedule._id)}
-                  className="bg-slate-900 border border-slate-850 hover:border-emerald-500/30 rounded-2xl p-5 sm:p-6 transition-all duration-300 shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-5 hover:translate-x-1"
+                <button
+                  key={idx}
+                  onClick={() => handleCarouselDateSelect(date)}
+                  className={`px-4.5 py-2.5 rounded-xl border text-center transition-all min-w-[90px] ${
+                    isSelected
+                      ? 'bg-emerald-500 border-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/10'
+                      : 'bg-slate-900 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                  }`}
                 >
-                  <div className="space-y-3.5 flex-grow">
-                    {/* Header: Bus Info */}
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 border border-emerald-500/20 rounded-md">
-                        {schedule.busId?.busName ? String(schedule.busId.busName) : 'SmartGo Express'}
-                      </span>
-                      <span className="text-[10px] text-slate-500 font-semibold uppercase">
-                        {schedule.busId?.type ? String(schedule.busId.type) : 'Luxury AC'}
-                      </span>
-                    </div>
-
-                    {/* Main Timing Details */}
-                    <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
-                      <div>
-                        <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-                          <Clock className="h-4 w-4 text-slate-500" />
-                          <span>{formatTime(schedule.departureTime)}</span>
-                        </div>
-                        <p className="text-[10px] text-slate-500 font-semibold">{formatDate(schedule.departureTime)}</p>
-                        <p className="text-xs font-bold text-slate-300 mt-1">{schedule.routeId?.origin ? String(schedule.routeId.origin) : ''}</p>
-                      </div>
-                      
-                      <ArrowRight className="h-4 w-4 text-emerald-500/40" />
-
-                      <div>
-                        <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-                          <Clock className="h-4 w-4 text-slate-500" />
-                          <span>{formatTime(schedule.arrivalTime)}</span>
-                        </div>
-                        <p className="text-[10px] text-slate-500 font-semibold">{formatDate(schedule.arrivalTime)}</p>
-                        <p className="text-xs font-bold text-slate-300 mt-1">{schedule.routeId?.destination ? String(schedule.routeId.destination) : ''}</p>
-                      </div>
-
-                      <div className="border-l border-slate-800 pl-4 sm:pl-6 text-xs text-slate-400">
-                        <p>Duration: <span className="font-semibold text-slate-300">{getDurationText(schedule)}</span></p>
-                        <p className="mt-0.5">Seats Left: <span className="font-bold text-emerald-400 font-mono">{availableSeats}</span></p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Pricing / Booking Trigger */}
-                  <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto border-t md:border-t-0 border-slate-850 pt-4 md:pt-0 gap-4">
-                    <div className="flex items-center text-xl font-mono font-black text-emerald-400">
-                      <DollarSign className="h-5 w-5 text-emerald-500" />
-                      <span>{baseFareNum.toFixed(2)}</span>
-                    </div>
-
-                    <button
-                      onClick={() => navigate(`/schedules/${schedule._id}`)}
-                      className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-xs font-bold text-slate-950 flex items-center gap-1.5 transition-colors shadow-md shadow-emerald-500/10"
-                    >
-                      View Details <ChevronRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
+                  <p className="text-[10px] uppercase font-bold tracking-wider">{dayStr}</p>
+                  <p className="text-xs font-semibold mt-0.5">{dateStr}</p>
+                </button>
               );
             })}
           </div>
-        ) : hasSearched ? (
-          <EmptyState
-            title="No Bus Departures Found"
-            description="Adjust your search criteria, choose a different travel date, or clear advanced filters to find more routes."
-          />
-        ) : (
-          <div className="bg-slate-900/30 border border-slate-900 rounded-2xl p-10 text-center text-xs text-slate-500 max-w-md mx-auto">
-            Specify origin, destination, and travel dates above to display matching bus schedules.
+
+          <button
+            onClick={() => {
+              const next = new Date(filters.travelDate);
+              next.setDate(next.getDate() + 1);
+              setFilters(f => ({ ...f, travelDate: next.toISOString().split('T')[0] }));
+            }}
+            className="p-2 hover:bg-slate-850 rounded-xl text-slate-400 hover:text-slate-200 transition-colors"
+          >
+            <ChevronRight className="h-4.5 w-4.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Split Listings & Map Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Left Column: Results Cards (2/3 width) */}
+        <div className="lg:col-span-2 space-y-4">
+          {loading ? (
+            <LoadingSkeleton type="card" count={3} />
+          ) : filteredSchedules.length > 0 ? (
+            <div className="space-y-4">
+              {filteredSchedules.map((schedule) => {
+                // Ensure baseFare is a safe numeric representation or fallback
+                let baseFareNum = 0;
+                const rawFare = schedule.fare || (schedule.routeId && schedule.routeId.baseFare);
+                if (rawFare) {
+                  if (typeof rawFare === 'object' && rawFare.$numberDecimal) {
+                    baseFareNum = parseFloat(rawFare.$numberDecimal) || 0;
+                  } else if (typeof rawFare === 'object' && rawFare.toString) {
+                    baseFareNum = parseFloat(rawFare.toString()) || 0;
+                  } else {
+                    baseFareNum = parseFloat(rawFare) || 0;
+                  }
+                }
+
+                const availableSeats = schedule.availableSeats !== undefined ? Number(schedule.availableSeats) : 40;
+                const stopsList = schedule.routeId?.stops || [];
+
+                return (
+                  <div
+                    key={String(schedule._id)}
+                    className="bg-slate-900 border border-slate-850 hover:border-emerald-500/30 rounded-3xl p-5 sm:p-6 transition-all duration-300 shadow-lg flex flex-col justify-between gap-5 relative overflow-hidden"
+                  >
+                    {/* Top Badges / Row */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-850/60 pb-3.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-200">
+                          {schedule.routeId?.origin ? String(schedule.routeId.origin) : ''} ➔ {schedule.routeId?.destination ? String(schedule.routeId.destination) : ''}
+                        </span>
+                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 border border-emerald-500/10 rounded">
+                          {schedule.busId?.busName ? String(schedule.busId.busName) : 'SmartGo Express'}
+                        </span>
+                        <span className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">
+                          {schedule.busId?.type ? String(schedule.busId.type) : 'Luxury AC'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/20 px-2.5 py-0.5 rounded-full shadow-inner">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Certified Route
+                      </div>
+                    </div>
+
+                    {/* Middle Core Times Details */}
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 py-1">
+                      {/* Departure */}
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-bold text-slate-550 uppercase tracking-widest block">DEPARTURE</span>
+                        <p className="text-xl font-bold font-mono text-slate-100">{formatTime(schedule.departureTime)}</p>
+                        <p className="text-xs font-bold text-slate-350">{schedule.routeId?.origin ? String(schedule.routeId.origin) : ''}</p>
+                        <p className="text-[10px] text-slate-500 font-semibold">{formatDate(schedule.departureTime)}</p>
+                      </div>
+
+                      {/* Travel Line */}
+                      <div className="flex-grow flex flex-col items-center justify-center min-w-[120px] w-full md:w-auto mt-2 md:mt-0">
+                        <div className="text-[10px] font-bold text-slate-450 mb-1 flex items-center gap-1 font-mono">
+                          <Clock className="h-3.5 w-3.5 text-slate-500" /> {getDurationText(schedule)}
+                        </div>
+                        <div className="relative w-full h-[2px] bg-slate-800 flex items-center">
+                          <div className="absolute left-0 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                          <div className="absolute right-0 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                          <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-full text-[9px] text-emerald-400 font-bold flex items-center gap-1 shadow-md">
+                            <Bus className="h-3 w-3 animate-pulse" />
+                          </div>
+                        </div>
+                        <span className="text-[9px] text-slate-500 font-semibold mt-1">Express Transit</span>
+                      </div>
+
+                      {/* Arrival */}
+                      <div className="space-y-1 text-left md:text-right">
+                        <span className="text-[9px] font-bold text-slate-550 uppercase tracking-widest block">ARRIVAL</span>
+                        <p className="text-xl font-bold font-mono text-slate-100">{formatTime(schedule.arrivalTime)}</p>
+                        <p className="text-xs font-bold text-slate-350">{schedule.routeId?.destination ? String(schedule.routeId.destination) : ''}</p>
+                        <p className="text-[10px] text-slate-500 font-semibold">{formatDate(schedule.arrivalTime)}</p>
+                      </div>
+                    </div>
+
+                    {/* Bottom Actions Row */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-850/60 pt-3.5 mt-1">
+                      {/* Left: Stop accordion & Seats counter */}
+                      <div className="flex items-center gap-4.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedScheduleId(expandedScheduleId === schedule._id ? null : schedule._id);
+                          }}
+                          className="flex items-center gap-1 text-[11px] font-bold text-slate-450 hover:text-emerald-400 transition-colors bg-slate-950/60 border border-slate-850 px-3 py-1.5 rounded-xl shadow-inner"
+                        >
+                          <Info className="h-3.5 w-3.5" />
+                          {expandedScheduleId === schedule._id ? 'Hide Stops' : 'View Stops'}
+                        </button>
+                        <div className="text-[11px] text-slate-450">
+                          Seats Left: <span className="font-bold text-emerald-400 font-mono">{availableSeats}</span>
+                        </div>
+                      </div>
+
+                      {/* Right: Price & Booking */}
+                      <div className="flex items-center gap-5">
+                        <div className="flex items-center font-mono font-black text-emerald-400 text-xl">
+                          <DollarSign className="h-5 w-5 text-emerald-500" />
+                          <span>{baseFareNum.toFixed(2)}</span>
+                        </div>
+
+                        <button
+                          onClick={() => navigate(`/schedules/${schedule._id}`)}
+                          className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-xs font-black text-slate-950 flex items-center gap-1 shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/25 transition-all transform active:scale-95"
+                        >
+                          Book Seat <ChevronRight className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Collapsible Station Accordion Details */}
+                    {expandedScheduleId === schedule._id && (
+                      <div className="w-full bg-slate-950/50 border border-slate-850 p-5 rounded-2xl animate-slide-in space-y-3">
+                        <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Stations & Schedule Timeline</h4>
+                        <div className="space-y-4 relative pl-5 before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-[1.5px] before:bg-slate-850">
+                          {/* Start Origin */}
+                          <div className="relative text-xs">
+                            <div className="absolute -left-[17px] top-1 h-2.5 w-2.5 bg-emerald-500 border border-slate-950 rounded-full" />
+                            <span className="font-bold text-slate-355">{schedule.routeId?.origin}</span>
+                            <span className="text-[10px] text-slate-500 ml-2">Departed at {formatTime(schedule.departureTime)}</span>
+                          </div>
+                          
+                          {/* Intermediate stops */}
+                          {stopsList.length > 0 ? (
+                            stopsList.map((stop, sidx) => {
+                              const stopName = typeof stop === 'string' ? stop : (stop?.name || '');
+                              return (
+                                <div key={sidx} className="relative text-xs">
+                                  <div className="absolute -left-[17px] top-1 h-2.5 w-2.5 bg-slate-850 border border-slate-950 rounded-full" />
+                                  <span className="text-slate-450">{stopName}</span>
+                                  <span className="text-[9px] text-slate-550 ml-2">Intermediate Station</span>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div className="text-[10px] text-slate-600 pl-2">Direct route with no intermediate stops.</div>
+                          )}
+
+                          {/* End Destination */}
+                          <div className="relative text-xs">
+                            <div className="absolute -left-[17px] top-1 h-2.5 w-2.5 bg-emerald-500 border border-slate-950 rounded-full" />
+                            <span className="font-bold text-slate-355">{schedule.routeId?.destination}</span>
+                            <span className="text-[10px] text-slate-500 ml-2">Arriving at {formatTime(schedule.arrivalTime)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : hasSearched ? (
+            <EmptyState
+              title="No Bus Departures Found"
+              description="Adjust your search criteria, choose a different travel date, or clear advanced filters to find more routes."
+            />
+          ) : (
+            <div className="bg-slate-900/30 border border-dashed border-slate-850 rounded-3xl p-10 text-center text-xs text-slate-500 max-w-md mx-auto my-6 animate-pulse">
+              Specify origin, destination, and travel dates above to display matching bus schedules.
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Dynamic SVG Map Widget & Stats Card (1/3 width) */}
+        <div className="space-y-6">
+          {/* SVG Map Widget */}
+          <div className="bg-slate-900 border border-slate-850 p-6 rounded-3xl shadow-xl space-y-4">
+            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+              <MapIcon className="h-4.5 w-4.5 text-emerald-450" /> Route Map Preview
+            </h3>
+
+            <div className="relative bg-slate-950 border border-slate-850 rounded-2xl overflow-hidden p-4 flex items-center justify-center min-h-[360px] shadow-inner">
+              <div className="absolute top-2 right-2 flex items-center gap-1 text-[8px] font-bold text-slate-600 bg-slate-900 border border-slate-850 px-2 py-0.5 rounded uppercase tracking-wider">
+                <Sparkles className="h-2 w-2 text-emerald-400 animate-pulse" /> Live Tracker
+              </div>
+
+              {/* Sri Lankan SVG Interactive Map Grid */}
+              <svg width="220" height="380" viewBox="0 0 220 380" className="w-full h-auto text-slate-800">
+                {/* Subtle Sri Lanka Coast Outline Grid */}
+                <path
+                  d="M100,30 C90,40 85,60 80,80 C75,100 70,120 75,140 C80,160 85,180 85,200 C85,220 80,240 85,260 C90,280 92,300 90,320 C88,340 95,355 105,365 C115,370 135,365 145,355 C155,345 165,330 175,325 C185,320 190,305 185,285 C180,265 190,245 195,225 C200,205 195,170 190,150 C185,130 180,100 170,80 C160,60 145,45 130,35 C115,25 110,25 100,30 Z"
+                  fill="rgba(16, 185, 129, 0.02)"
+                  stroke="rgba(255, 255, 255, 0.05)"
+                  strokeWidth="1.5"
+                  strokeDasharray="4,4"
+                />
+
+                {/* Cities Dots */}
+                {Object.entries(SRI_LANKA_COORDS).map(([key, city]) => {
+                  const isOrigin = key === originKey;
+                  const isDest = key === destKey;
+                  const isNode = isOrigin || isDest;
+
+                  return (
+                    <g key={key}>
+                      <circle
+                        cx={city.x}
+                        cy={city.y}
+                        r={isNode ? 4.5 : 2}
+                        fill={isOrigin ? '#10b981' : isDest ? '#3b82f6' : '#334155'}
+                        className={isNode ? 'animate-pulse' : ''}
+                      />
+                      {isNode && (
+                        <circle
+                          cx={city.x}
+                          cy={city.y}
+                          r="10"
+                          fill="none"
+                          stroke={isOrigin ? '#10b981' : '#3b82f6'}
+                          strokeWidth="1"
+                          className="animate-ping"
+                          style={{ animationDuration: '3s' }}
+                        />
+                      )}
+                      {(isNode || ['colombo', 'kandy', 'galle', 'jaffna'].includes(key)) && (
+                        <text
+                          x={city.x + 6}
+                          y={city.y + 3}
+                          fill={isNode ? '#e2e8f0' : '#475569'}
+                          fontSize="8"
+                          fontWeight={isNode ? 'bold' : 'normal'}
+                          className="font-sans"
+                        >
+                          {city.name}
+                        </text>
+                      )}
+                    </g>
+                  );
+                })}
+
+                {/* Connecting Transit Line */}
+                {mapOrigin && mapDest && (
+                  <g>
+                    {/* Glow outline */}
+                    <line
+                      x1={mapOrigin.x}
+                      y1={mapOrigin.y}
+                      x2={mapDest.x}
+                      y2={mapDest.y}
+                      stroke="#10b981"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      opacity="0.3"
+                      className="blur-[1px]"
+                    />
+                    {/* Main path */}
+                    <line
+                      x1={mapOrigin.x}
+                      y1={mapOrigin.y}
+                      x2={mapDest.x}
+                      y2={mapDest.y}
+                      stroke="#10b981"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeDasharray="5,5"
+                    >
+                      <animate
+                        attributeName="stroke-dashoffset"
+                        values="50;0"
+                        dur="3s"
+                        repeatCount="indefinite"
+                      />
+                    </line>
+                  </g>
+                )}
+              </svg>
+            </div>
           </div>
-        )}
+
+          {/* Route Stats Card */}
+          {mapOrigin && mapDest && (
+            <div className="bg-slate-900 border border-slate-850 p-6 rounded-3xl shadow-xl space-y-4">
+              <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                <Navigation className="h-4.5 w-4.5 text-emerald-450" /> Route Statistics
+              </h4>
+
+              <div className="space-y-3.5 text-xs text-slate-400">
+                <div className="flex justify-between border-b border-slate-850/50 pb-2">
+                  <span>Connection Path</span>
+                  <span className="font-bold text-slate-200">{mapOrigin.name} ➔ {mapDest.name}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-850/50 pb-2">
+                  <span>Average Speed</span>
+                  <span className="font-bold text-slate-200 font-mono">65 km/h</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-850/50 pb-2">
+                  <span>Transit Type</span>
+                  <span className="font-bold text-emerald-400">Highway Express</span>
+                </div>
+                <p className="text-[10px] text-slate-500 leading-relaxed pt-1">
+                  * Live route highlights reflect expressway connections (E01/E02) or main arterial highways. Actual transit times can vary based on local traffic conditions.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
