@@ -136,30 +136,42 @@ const SeatSelection = () => {
           </div>
 
           {/* Seat Status Legend */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950 p-4 border border-slate-850 rounded-2xl relative z-10 text-[10px] sm:text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-950 p-4 border border-slate-850 rounded-2xl relative z-10 text-[10px] sm:text-xs">
             <div className="flex items-center gap-2">
-              <div className="h-4.5 w-4.5 rounded-lg border-2 border-emerald-500 bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold">
+              <div className="h-4.5 w-4.5 rounded-lg border border-slate-700 bg-slate-900/10 text-slate-400 flex items-center justify-center font-bold">
                 <Armchair className="h-3 w-3" />
               </div>
-              <span className="text-slate-400">Available</span>
+              <span className="text-slate-405">Available</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-4.5 w-4.5 rounded-lg border-2 border-emerald-500 bg-emerald-500 text-slate-950 flex items-center justify-center font-bold">
+              <div className="h-4.5 w-4.5 rounded-lg border border-emerald-500 bg-emerald-500 text-slate-950 flex items-center justify-center font-bold">
                 <Armchair className="h-3 w-3" />
               </div>
-              <span className="text-slate-400">Selected</span>
+              <span className="text-slate-405">Selected by You</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-4.5 w-4.5 rounded-lg border-2 border-red-500 bg-red-500/10 text-red-400 flex items-center justify-center font-bold">
+              <div className="h-4.5 w-4.5 rounded-lg border border-blue-500 bg-blue-500/15 text-blue-405 flex items-center justify-center font-bold">
                 <Armchair className="h-3 w-3" />
               </div>
-              <span className="text-slate-400">Booked</span>
+              <span className="text-slate-405">Booked by Gents</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-4.5 w-4.5 rounded-lg border-2 border-slate-800 bg-slate-900/50 text-slate-650 flex items-center justify-center font-bold">
+              <div className="h-4.5 w-4.5 rounded-lg border border-pink-500 bg-pink-500/15 text-pink-405 flex items-center justify-center font-bold">
                 <Armchair className="h-3 w-3" />
               </div>
-              <span className="text-slate-400">Blocked / Held</span>
+              <span className="text-slate-405">Booked by Ladies</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-4.5 w-4.5 rounded-lg border border-purple-500 bg-purple-500/15 text-purple-405 flex items-center justify-center font-bold">
+                <Armchair className="h-3 w-3" />
+              </div>
+              <span className="text-slate-450">Reserved Seats</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-4.5 w-4.5 rounded-lg border border-slate-800 bg-slate-900/40 text-slate-700 flex items-center justify-center font-bold">
+                <Armchair className="h-3 w-3" />
+              </div>
+              <span className="text-slate-450">Unavailable</span>
             </div>
           </div>
 
@@ -168,82 +180,138 @@ const SeatSelection = () => {
             {/* Steering Wheel Indicator */}
             <div className="w-full max-w-[200px] border-b border-slate-850 pb-4 mb-6 flex justify-between items-center text-[10px] font-bold text-slate-500 tracking-wider">
               <span>DRIVER SEAT</span>
-              <div className="h-6 w-6 border-2 border-slate-750 rounded-full flex items-center justify-center">⚙️</div>
+              <div className="h-6 w-6 border border-slate-800 rounded-full flex items-center justify-center">⚙️</div>
             </div>
 
             {/* Seating rows list */}
             {Object.keys(rows).length > 0 ? (
               <div className="space-y-4 px-6 w-full">
-                {Object.keys(rows).sort().map((rowName) => (
-                  <div key={rowName} className="flex justify-between items-center gap-4">
-                    {/* Left Corridor Group (1 & 2) */}
-                    <div className="flex gap-3">
-                      {rows[rowName].slice(0, 2).map((seat) => {
-                        const isSelected = selectedSeats.includes(seat.seatNumber);
-                        const isAvailable = seat.status === 'AVAILABLE';
-                        const isBooked = seat.status === 'BOOKED';
+                {Object.keys(rows).sort().map((rowName) => {
+                  const rowSeats = rows[rowName];
+                  const isBackRow = rowSeats.length === 5;
 
-                        let stateStyles = 'border-emerald-500 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20';
-                        if (isSelected) {
-                          stateStyles = 'border-emerald-500 bg-emerald-500 text-slate-950';
-                        } else if (isBooked) {
-                          stateStyles = 'border-red-500 bg-red-500/10 text-red-400 cursor-not-allowed';
-                        } else if (!isAvailable) {
-                          stateStyles = 'border-slate-800 bg-slate-900/50 text-slate-600 cursor-not-allowed';
-                        }
+                  return (
+                    <div key={rowName} className="flex justify-between items-center gap-4">
+                      {isBackRow ? (
+                        /* Back row has 5 seats with no center aisle */
+                        <div className="flex gap-2.5 justify-center w-full">
+                          {rowSeats.map((seat) => {
+                            const isSelected = selectedSeats.includes(seat.seatNumber);
+                            const isAvailable = seat.status === 'AVAILABLE';
+                            const isBooked = seat.status === 'BOOKED';
 
-                        return (
-                          <button
-                            key={seat._id}
-                            onClick={() => handleSeatClick(seat)}
-                            disabled={!isAvailable && !isSelected}
-                            className={`h-11 w-11 rounded-xl border-2 font-bold text-xs flex flex-col items-center justify-center transition-all ${stateStyles}`}
-                            title={`Seat ${seat.seatNumber} (${seat.status})`}
-                          >
-                            <Armchair className="h-4 w-4" />
-                            <span className="text-[8px] mt-0.5">{seat.seatNumber}</span>
-                          </button>
-                        );
-                      })}
+                            let stateStyles = 'border-slate-700 bg-slate-900/10 text-slate-400 hover:border-slate-500 hover:text-slate-200';
+                            if (isSelected) {
+                              stateStyles = 'border-emerald-500 bg-emerald-500 text-slate-950';
+                            } else if (isBooked) {
+                              const isFemale = seat.passengerId?.gender === 'FEMALE';
+                              stateStyles = isFemale
+                                ? 'border-pink-500 bg-pink-500/15 text-pink-400 cursor-not-allowed'
+                                : 'border-blue-500 bg-blue-500/15 text-blue-400 cursor-not-allowed';
+                            } else if (seat.status === 'HELD') {
+                              stateStyles = 'border-purple-500 bg-purple-500/15 text-purple-400 cursor-not-allowed';
+                            } else if (!isAvailable) {
+                              stateStyles = 'border-slate-800 bg-slate-900/40 text-slate-700 cursor-not-allowed opacity-40';
+                            }
+
+                            return (
+                              <button
+                                key={seat._id}
+                                onClick={() => handleSeatClick(seat)}
+                                disabled={!isAvailable && !isSelected}
+                                className={`h-11 w-11 rounded-xl border font-bold text-xs flex flex-col items-center justify-center transition-all ${stateStyles}`}
+                                title={`Seat ${seat.seatNumber} (${seat.status})`}
+                              >
+                                <Armchair className="h-4 w-4" />
+                                <span className="text-[8px] mt-0.5">{seat.seatNumber}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        /* Regular row has 4 seats divided by a center aisle */
+                        <>
+                          {/* Left Corridor Group (1 & 2) */}
+                          <div className="flex gap-3">
+                            {rowSeats.slice(0, 2).map((seat) => {
+                              const isSelected = selectedSeats.includes(seat.seatNumber);
+                              const isAvailable = seat.status === 'AVAILABLE';
+                              const isBooked = seat.status === 'BOOKED';
+
+                              let stateStyles = 'border-slate-700 bg-slate-900/10 text-slate-400 hover:border-slate-500 hover:text-slate-200';
+                              if (isSelected) {
+                                stateStyles = 'border-emerald-500 bg-emerald-500 text-slate-950';
+                              } else if (isBooked) {
+                                const isFemale = seat.passengerId?.gender === 'FEMALE';
+                                stateStyles = isFemale
+                                  ? 'border-pink-500 bg-pink-500/15 text-pink-400 cursor-not-allowed'
+                                  : 'border-blue-500 bg-blue-500/15 text-blue-400 cursor-not-allowed';
+                              } else if (seat.status === 'HELD') {
+                                stateStyles = 'border-purple-500 bg-purple-500/15 text-purple-400 cursor-not-allowed';
+                              } else if (!isAvailable) {
+                                stateStyles = 'border-slate-800 bg-slate-900/40 text-slate-700 cursor-not-allowed opacity-40';
+                              }
+
+                              return (
+                                <button
+                                  key={seat._id}
+                                  onClick={() => handleSeatClick(seat)}
+                                  disabled={!isAvailable && !isSelected}
+                                  className={`h-11 w-11 rounded-xl border font-bold text-xs flex flex-col items-center justify-center transition-all ${stateStyles}`}
+                                  title={`Seat ${seat.seatNumber} (${seat.status})`}
+                                >
+                                  <Armchair className="h-4 w-4" />
+                                  <span className="text-[8px] mt-0.5">{seat.seatNumber}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Corridor Space */}
+                          <div className="w-8 text-[8px] font-bold text-slate-700 text-center uppercase tracking-widest">
+                            Aisle
+                          </div>
+
+                          {/* Right Corridor Group (3 & 4) */}
+                          <div className="flex gap-3">
+                            {rowSeats.slice(2, 4).map((seat) => {
+                              const isSelected = selectedSeats.includes(seat.seatNumber);
+                              const isAvailable = seat.status === 'AVAILABLE';
+                              const isBooked = seat.status === 'BOOKED';
+
+                              let stateStyles = 'border-slate-700 bg-slate-900/10 text-slate-400 hover:border-slate-500 hover:text-slate-200';
+                              if (isSelected) {
+                                stateStyles = 'border-emerald-500 bg-emerald-500 text-slate-950';
+                              } else if (isBooked) {
+                                const isFemale = seat.passengerId?.gender === 'FEMALE';
+                                stateStyles = isFemale
+                                  ? 'border-pink-500 bg-pink-500/15 text-pink-400 cursor-not-allowed'
+                                  : 'border-blue-500 bg-blue-500/15 text-blue-400 cursor-not-allowed';
+                              } else if (seat.status === 'HELD') {
+                                stateStyles = 'border-purple-500 bg-purple-500/15 text-purple-400 cursor-not-allowed';
+                              } else if (!isAvailable) {
+                                stateStyles = 'border-slate-800 bg-slate-900/40 text-slate-700 cursor-not-allowed opacity-40';
+                              }
+
+                              return (
+                                <button
+                                  key={seat._id}
+                                  onClick={() => handleSeatClick(seat)}
+                                  disabled={!isAvailable && !isSelected}
+                                  className={`h-11 w-11 rounded-xl border font-bold text-xs flex flex-col items-center justify-center transition-all ${stateStyles}`}
+                                  title={`Seat ${seat.seatNumber} (${seat.status})`}
+                                >
+                                  <Armchair className="h-4 w-4" />
+                                  <span className="text-[8px] mt-0.5">{seat.seatNumber}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
                     </div>
-
-                    {/* Corridor Space */}
-                    <div className="w-8 text-[8px] font-bold text-slate-700 text-center uppercase tracking-widest">
-                      Aisle
-                    </div>
-
-                    {/* Right Corridor Group (3 & 4) */}
-                    <div className="flex gap-3">
-                      {rows[rowName].slice(2, 4).map((seat) => {
-                        const isSelected = selectedSeats.includes(seat.seatNumber);
-                        const isAvailable = seat.status === 'AVAILABLE';
-                        const isBooked = seat.status === 'BOOKED';
-
-                        let stateStyles = 'border-emerald-500 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20';
-                        if (isSelected) {
-                          stateStyles = 'border-emerald-500 bg-emerald-500 text-slate-950';
-                        } else if (isBooked) {
-                          stateStyles = 'border-red-500 bg-red-500/10 text-red-400 cursor-not-allowed';
-                        } else if (!isAvailable) {
-                          stateStyles = 'border-slate-800 bg-slate-900/50 text-slate-650 cursor-not-allowed';
-                        }
-
-                        return (
-                          <button
-                            key={seat._id}
-                            onClick={() => handleSeatClick(seat)}
-                            disabled={!isAvailable && !isSelected}
-                            className={`h-11 w-11 rounded-xl border-2 font-bold text-xs flex flex-col items-center justify-center transition-all ${stateStyles}`}
-                            title={`Seat ${seat.seatNumber} (${seat.status})`}
-                          >
-                            <Armchair className="h-4 w-4" />
-                            <span className="text-[8px] mt-0.5">{seat.seatNumber}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center text-xs text-slate-500 py-8">

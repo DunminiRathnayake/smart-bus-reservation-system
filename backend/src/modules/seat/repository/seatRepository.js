@@ -48,7 +48,7 @@ class SeatRepository {
       if (status) {
         filter.status = status;
       }
-      return await Seat.find(filter).sort(sortBy).exec();
+      return await Seat.find(filter).populate('passengerId').sort(sortBy).exec();
     } catch (error) {
       throw new Error(`Database error in findBySchedule seats: ${error.message}`);
     }
