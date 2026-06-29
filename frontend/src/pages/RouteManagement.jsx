@@ -31,7 +31,7 @@ const routeSchema = z.object({
   ),
   estimatedDuration: z.preprocess(
     (val) => Number(val),
-    z.number().min(1, 'Estimated duration must be at least 1 minute')
+    z.number().min(0.1, 'Duration must be at least 0.1 hours')
   ),
   farePerKm: z.preprocess(
     (val) => Number(val),
@@ -79,7 +79,7 @@ const RouteManagement = () => {
       destination: '',
       type: 'EXPRESS',
       distance: 100,
-      estimatedDuration: 120,
+      estimatedDuration: 2.0, // Default duration set to 2 hours
       farePerKm: 0.15,
       stopsInput: ''
     }
@@ -129,7 +129,7 @@ const RouteManagement = () => {
       destination: '',
       type: 'EXPRESS',
       distance: 100,
-      estimatedDuration: 120,
+      estimatedDuration: 2.0, // Default to 2 hours
       farePerKm: 0.15,
       stopsInput: ''
     });
@@ -144,7 +144,8 @@ const RouteManagement = () => {
     setValue('destination', route.destination);
     setValue('type', route.type);
     setValue('distance', route.distance);
-    setValue('estimatedDuration', route.estimatedDuration);
+    // Convert minutes from backend back to hours for form input (e.g. 150 mins -> 2.5 hours)
+    setValue('estimatedDuration', Number((route.estimatedDuration / 60).toFixed(2)));
     setValue('farePerKm', route.farePerKm || 0.15);
     setValue('stopsInput', route.stops?.map((s) => s.name).join(', ') || '');
     setModalOpen(true);
@@ -160,6 +161,9 @@ const RouteManagement = () => {
           .filter(Boolean)
       : [];
     
+    // Convert hours from input back to integer minutes for backend validation
+    const durationInMinutes = Math.round(data.estimatedDuration * 60);
+
     const stopsCount = stopsList.length;
     const stops = stopsList.map((stopName, idx) => {
       const order = idx + 1;
@@ -168,7 +172,7 @@ const RouteManagement = () => {
         name: stopName,
         order,
         distanceFromOrigin: Number((data.distance * fraction).toFixed(2)),
-        estimatedArrivalOffset: Math.round(data.estimatedDuration * fraction)
+        estimatedArrivalOffset: Math.round(durationInMinutes * fraction)
       };
     });
 
@@ -179,8 +183,8 @@ const RouteManagement = () => {
       destination: data.destination,
       type: data.type,
       distance: data.distance,
-      estimatedDuration: data.estimatedDuration,
-      baseFare: 1.00, // Hardcoded default to satisfy required backend schema validation
+      estimatedDuration: durationInMinutes,
+      baseFare: 1.00,
       farePerKm: data.farePerKm,
       stops
     };
@@ -233,9 +237,8 @@ const RouteManagement = () => {
 
   const formatDuration = (minutes) => {
     if (!minutes) return 'N/A';
-    const hrs = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+    const hrs = minutes / 60;
+    return `${Number(hrs.toFixed(2))}h`;
   };
 
   return (
@@ -305,7 +308,7 @@ const RouteManagement = () => {
               <tbody className="divide-y divide-slate-850/80">
                 {routes.map((route) => (
                   <tr key={route._id} className="hover:bg-slate-850/20 text-slate-300 transition-colors">
-                    <td className="p-4 sm:p-5 font-mono text-emerald-450 font-bold">{route.routeCode}</td>
+                    <td className="p-4 sm:p-5 font-mono text-emerald-455 font-bold">{route.routeCode}</td>
                     <td className="p-4 sm:p-5 font-semibold text-slate-200">{route.routeName}</td>
                     <td className="p-4 sm:p-5 font-semibold text-slate-300">
                       {route.origin} ➔ {route.destination}
@@ -316,7 +319,7 @@ const RouteManagement = () => {
                     <td className="p-4 sm:p-5">
                       {route.distance} km / <span className="font-semibold text-slate-400">{formatDuration(route.estimatedDuration)}</span>
                     </td>
-                    <td className="p-4 sm:p-5 font-mono text-emerald-400 font-bold">${route.farePerKm?.toFixed(2)}</td>
+                    <td className="p-4 sm:p-5 font-mono text-emerald-450 font-bold">${route.farePerKm?.toFixed(2)}</td>
                     <td className="p-4 sm:p-5 text-right space-x-2">
                       <button
                         onClick={() => handleOpenEdit(route)}
@@ -449,10 +452,11 @@ const RouteManagement = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-455 uppercase tracking-wider">Duration (mins)</label>
+                  <label className="font-semibold text-slate-455 uppercase tracking-wider">Duration (hours)</label>
                   <input
                     type="number"
-                    placeholder="120"
+                    step="any"
+                    placeholder="e.g. 2 or 2.5"
                     {...registerField('estimatedDuration')}
                     className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
                   />
@@ -487,7 +491,7 @@ const RouteManagement = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="font-semibold text-slate-450 uppercase tracking-wider flex items-center gap-1">
+                <label className="font-semibold text-slate-455 uppercase tracking-wider flex items-center gap-1">
                   Intermediate Stops <span className="text-[9px] text-slate-550 font-normal normal-case">(comma separated)</span>
                 </label>
                 <input
