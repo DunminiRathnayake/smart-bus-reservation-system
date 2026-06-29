@@ -30,7 +30,11 @@ class ScheduleRepository {
    */
   async findById(id) {
     try {
-      return await Schedule.findOne({ _id: id, deletedAt: null }).exec();
+      return await Schedule.findOne({ _id: id, deletedAt: null })
+        .populate('busId')
+        .populate('driverId')
+        .populate('routeId')
+        .exec();
     } catch (error) {
       throw new Error(`Database error in findById schedule: ${error.message}`);
     }
@@ -102,6 +106,9 @@ class ScheduleRepository {
       // 6. Query execution using Promise.all
       const [schedules, totalItems] = await Promise.all([
         Schedule.find(filter)
+          .populate('busId')
+          .populate('driverId')
+          .populate('routeId')
           .sort(sortOption)
           .skip(skip)
           .limit(limitNum)
@@ -139,7 +146,11 @@ class ScheduleRepository {
       return await Schedule.findByIdAndUpdate(id, data, {
         new: true,
         runValidators: true
-      }).exec();
+      })
+      .populate('busId')
+      .populate('driverId')
+      .populate('routeId')
+      .exec();
     } catch (error) {
       throw new Error(`Database error in update schedule: ${error.message}`);
     }
