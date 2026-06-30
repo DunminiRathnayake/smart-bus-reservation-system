@@ -68,9 +68,6 @@ const AppRoutes = () => {
         <Route element={<ProtectedRoute allowedRoles={['ROLE_PASSENGER']} />}>
           <Route element={<PassengerLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/search-bus" element={<SearchBus />} />
-            <Route path="/schedules/:scheduleId" element={<ScheduleDetails />} />
-            <Route path="/schedules/:scheduleId/seats" element={<SeatSelection />} />
             <Route path="/schedules/:scheduleId/book" element={<BookingReview />} />
             <Route path="/schedules/:scheduleId/pay/:bookingId" element={<PaymentPage />} />
             <Route path="/tickets/:ticketId" element={<TicketDetails />} />
