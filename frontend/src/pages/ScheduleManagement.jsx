@@ -68,7 +68,7 @@ const ScheduleManagement = () => {
   const [editingSchedule, setEditingSchedule] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
-  const [recurrenceDays, setRecurrenceDays] = useState(7);
+  const [recurrenceDays, setRecurrenceDays] = useState(30);
 
   // Delete dialog states
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -107,6 +107,13 @@ const ScheduleManagement = () => {
       }
     }
   }, [watchedRouteId, routes, editingSchedule, setValue]);
+
+  // Set travelDateInput to today's date when isRecurring is checked
+  useEffect(() => {
+    if (isRecurring && !editingSchedule) {
+      setValue('travelDateInput', new Date().toISOString().split('T')[0]);
+    }
+  }, [isRecurring, editingSchedule, setValue]);
 
   const loadResources = async () => {
     try {
@@ -163,7 +170,7 @@ const ScheduleManagement = () => {
   const handleOpenAdd = () => {
     setEditingSchedule(null);
     setIsRecurring(false);
-    setRecurrenceDays(7);
+    setRecurrenceDays(30);
     reset({
       scheduleCode: `SC-${Math.floor(1000 + Math.random() * 9000)}`,
       busId: buses[0]?._id || '',
@@ -580,19 +587,21 @@ const ScheduleManagement = () => {
                   {errors.driverId && <p className="text-red-400 text-[10px] mt-0.5">{errors.driverId.message}</p>}
                 </div>
               </div>
-
+              
               {/* Date & times grid */}
               <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-400 uppercase tracking-wider">Travel Date</label>
-                  <input
-                    type="date"
-                    {...registerField('travelDateInput')}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
-                  />
-                  {errors.travelDateInput && <p className="text-red-400 text-[10px] mt-0.5">{errors.travelDateInput.message}</p>}
-                </div>
-
+                {!isRecurring && (
+                  <div className="space-y-1.5">
+                    <label className="font-semibold text-slate-400 uppercase tracking-wider">Travel Date</label>
+                    <input
+                      type="date"
+                      {...registerField('travelDateInput')}
+                      className="w-full bg-slate-950 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
+                    />
+                    {errors.travelDateInput && <p className="text-red-400 text-[10px] mt-0.5">{errors.travelDateInput.message}</p>}
+                  </div>
+                )}
+ 
                 <div className="space-y-1.5">
                   <label className="font-semibold text-slate-400 uppercase tracking-wider">Departure Time</label>
                   <input
@@ -645,14 +654,14 @@ const ScheduleManagement = () => {
                       <select
                         value={recurrenceDays}
                         onChange={(e) => setRecurrenceDays(parseInt(e.target.value))}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-slate-300 text-xs"
+                        className="w-full bg-slate-900 border border-slate-850 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-slate-300 text-xs"
                       >
-                        <option value={7}>Repeat daily for 7 days</option>
-                        <option value={14}>Repeat daily for 14 days</option>
                         <option value={30}>Repeat daily for 30 days</option>
+                        <option value={14}>Repeat daily for 14 days</option>
+                        <option value={7}>Repeat daily for 7 days</option>
                       </select>
                       <p className="text-[10px] text-slate-500 leading-relaxed">
-                        This will automatically assign this bus, driver, and route path once daily for the selected timeframe. Conflict and overlap checks are executed for each day.
+                        This will automatically assign this bus, driver, and route path starting from today's date daily for the selected timeframe.
                       </p>
                     </div>
                   )}
