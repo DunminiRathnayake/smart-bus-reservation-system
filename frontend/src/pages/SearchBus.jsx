@@ -277,26 +277,32 @@ const SearchBus = () => {
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 text-slate-400" /> From
             </label>
-            <input
-              type="text"
-              placeholder="e.g. Negombo"
+            <select
               value={filters.origin}
               onChange={(e) => setFilters({ ...filters, origin: e.target.value })}
               className="w-full bg-slate-950 border border-slate-850 rounded-xl py-3 px-4 focus:outline-none focus:border-emerald-500 text-sm text-slate-200"
-            />
+            >
+              <option value="">Select Departure City</option>
+              {['Colombo', 'Negombo', 'Kandy', 'Kurunegala', 'Matara', 'Galle', 'Ella', 'Kataragama', 'Jaffna', 'Trincomalee', 'Batticaloa', 'Panadura'].map((city) => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 text-slate-400" /> To
             </label>
-            <input
-              type="text"
-              placeholder="e.g. Colombo"
+            <select
               value={filters.destination}
               onChange={(e) => setFilters({ ...filters, destination: e.target.value })}
               className="w-full bg-slate-950 border border-slate-850 rounded-xl py-3 px-4 focus:outline-none focus:border-emerald-500 text-sm text-slate-200"
-            />
+            >
+              <option value="">Select Destination City</option>
+              {['Colombo', 'Negombo', 'Kandy', 'Kurunegala', 'Matara', 'Galle', 'Ella', 'Kataragama', 'Jaffna', 'Trincomalee', 'Batticaloa', 'Panadura'].map((city) => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-1.5">

@@ -13,8 +13,8 @@ const { successResponse, paginatedResponse } = require('../../../utils/response'
  * @access  Private
  */
 const createBooking = asyncHandler(async (req, res) => {
-  const booking = await bookingService.createBooking(req.body, req.user._id);
-  return successResponse(res, 'Booking created successfully', { booking }, 201);
+  const { booking, ticket } = await bookingService.createBooking(req.body, req.user._id);
+  return successResponse(res, 'Booking created successfully', { booking, ticket }, 201);
 });
 
 /**

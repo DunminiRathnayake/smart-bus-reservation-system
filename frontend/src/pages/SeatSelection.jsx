@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import seatService from '../services/seatService';
 import scheduleService from '../services/scheduleService';
+import bookingService from '../services/bookingService';
 import BookingStepper from '../components/common/BookingStepper';
 import BookingSidebar from '../components/common/BookingSidebar';
 import PageLoader from '../components/common/PageLoader';
 import { useToast } from '../contexts/ToastContext';
-import { ArrowLeft, Armchair, ChevronRight, AlertCircle, RefreshCw } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { ArrowLeft, Armchair, ChevronRight, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
 
 /**
  * Seat Selection page rendering layout maps, color-coded status indices,
@@ -16,11 +18,13 @@ const SeatSelection = () => {
   const { scheduleId } = useParams();
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const { user } = useAuth();
 
   const [schedule, setSchedule] = useState(null);
   const [seats, setSeats] = useState([]);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(false);
 
   const fetchSeatsData = async () => {
@@ -327,7 +331,7 @@ const SeatSelection = () => {
 
           {/* Continue Action */}
           <button
-            onClick={() => {
+            onClick={async () => {
               if (selectedSeats.length === 0) {
                 addToast('Please select at least one seat to continue.', 'warning');
                 return;
@@ -335,14 +339,55 @@ const SeatSelection = () => {
               const ids = seats
                 .filter((s) => selectedSeats.includes(s.seatNumber))
                 .map((s) => s._id);
-              navigate(
-                `/schedules/${scheduleId}/book?seats=${selectedSeats.join(',')}&seatIds=${ids.join(',')}`
-              );
+
+              if (!user) {
+                addToast('Please sign in as a passenger to confirm your seat booking.', 'info');
+                navigate('/login', {
+                  state: {
+                    bookingRedirect: {
+                      scheduleId,
+                      seatIds: ids,
+                      seatNames: selectedSeats
+                    }
+                  }
+                });
+                return;
+              }
+
+              setIsSubmitting(true);
+              try {
+                const payload = {
+                  scheduleId,
+                  seatIds: ids,
+                  passengerName: user.fullName,
+                  passengerEmail: user.email,
+                  passengerPhone: user.phoneNumber || '0771234567'
+                };
+                const res = await bookingService.createBooking(payload);
+                if (res.success && res.data) {
+                  addToast('Booking confirmed successfully!', 'success');
+                  navigate(`/tickets/${res.data.ticket._id}`);
+                } else {
+                  addToast(res.message || 'Failed to confirm booking.', 'error');
+                }
+              } catch (err) {
+                addToast(err.normalizedMessage || 'Error creating booking.', 'error');
+              } finally {
+                setIsSubmitting(false);
+              }
             }}
-            disabled={selectedSeats.length === 0}
+            disabled={selectedSeats.length === 0 || isSubmitting}
             className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-emerald-500/10"
           >
-            Confirm Seats & Book <ChevronRight className="h-4.5 w-4.5" />
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4.5 w-4.5 animate-spin" /> Confirming...
+              </>
+            ) : (
+              <>
+                Confirm Seats & Book <ChevronRight className="h-4.5 w-4.5" />
+              </>
+            )}
           </button>
         </div>
       </div>

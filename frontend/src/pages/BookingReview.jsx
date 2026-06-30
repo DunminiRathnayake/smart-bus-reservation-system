@@ -82,9 +82,9 @@ const BookingReview = () => {
 
       const response = await bookingService.createBooking(payload);
       if (response.success && response.data) {
-        const { booking } = response.data;
-        addToast('Booking reserved! Please review and finalize payment.', 'success');
-        navigate(`/schedules/${scheduleId}/pay/${booking._id}`);
+        const { ticket } = response.data;
+        addToast('Booking confirmed successfully!', 'success');
+        navigate(`/tickets/${ticket._id}`);
       } else {
         addToast(response.message || 'Failed to create booking.', 'error');
       }

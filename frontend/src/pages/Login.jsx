@@ -7,6 +7,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../contexts/ToastContext';
 import authService from '../services/authService';
+import bookingService from '../services/bookingService';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -63,6 +64,29 @@ const Login = () => {
         
         login(user, token);
         addToast(`Welcome back, ${user.fullName}!`, 'success');
+
+        // Auto-complete booking redirect if passenger came from seat selector
+        const bookingRedirect = location.state?.bookingRedirect;
+        if (bookingRedirect && user.role === 'ROLE_PASSENGER') {
+          try {
+            const payload = {
+              scheduleId: bookingRedirect.scheduleId,
+              seatIds: bookingRedirect.seatIds,
+              passengerName: user.fullName,
+              passengerEmail: user.email,
+              passengerPhone: user.phoneNumber || '0771234567'
+            };
+            const bookingRes = await bookingService.createBooking(payload);
+            if (bookingRes.success && bookingRes.data) {
+              addToast('Booking auto-confirmed successfully!', 'success');
+              navigate(`/tickets/${bookingRes.data.ticket._id}`, { replace: true });
+              return;
+            }
+          } catch (bookingErr) {
+            console.error('Auto-booking confirmation failed:', bookingErr);
+            addToast('Login success but failed to auto-confirm seats. Please re-select.', 'warning');
+          }
+        }
         
         // Redirect depending on user role
         navigate(user.role === 'ROLE_ADMIN' ? '/admin' : '/dashboard');
@@ -175,7 +199,7 @@ const Login = () => {
 
       <div className="text-center text-xs text-slate-400 border-t border-slate-900 pt-4">
         New to SmartGo?{' '}
-        <Link to="/register" className="text-emerald-400 hover:text-emerald-300 hover:underline font-semibold">
+        <Link to="/register" state={{ bookingRedirect: location.state?.bookingRedirect }} className="text-emerald-400 hover:text-emerald-300 hover:underline font-semibold">
           Create account
         </Link>
       </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -29,6 +29,7 @@ const registerSchema = z.object({
 const Register = () => {
   const { addToast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -51,7 +52,7 @@ const Register = () => {
       const response = await authService.register(data);
       if (response.success) {
         addToast('Registration successful! Please login to continue.', 'success');
-        navigate('/login');
+        navigate('/login', { state: { bookingRedirect: location.state?.bookingRedirect } });
       } else {
         setBackendError(response.message || 'Registration failed.');
         addToast(response.message || 'Registration failed.', 'error');

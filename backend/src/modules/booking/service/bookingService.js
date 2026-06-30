@@ -107,26 +107,65 @@ class BookingService {
       numberOfSeats,
       farePerSeat,
       totalAmount,
-      bookingStatus: BookingStatus.PENDING,
-      paymentStatus: PaymentStatus.UNPAID,
-      bookingExpiresAt,
+      bookingStatus: BookingStatus.CONFIRMED,
+      paymentStatus: PaymentStatus.PAID,
+      bookingExpiresAt: null,
       createdBy: userId
     };
 
-    // TODO: Wrap the following operations inside a single MongoDB transaction:
-    // 1. Create the booking document
-    // 2. Update seat statuses to HELD
-    // 3. Create payment record (Sprint 10)
-    
-    // Save booking
+    // Save booking as CONFIRMED directly since no payment is needed
     const booking = await bookingRepository.create(payload);
 
-    // Mark all selected seats as HELD
+    // Create a simulated successful payment document
+    const PaymentModel = require('../../payment/model/Payment');
+    const paymentCode = `PM-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(100000 + Math.random() * 900000)}`;
+    const payment = await PaymentModel.create({
+      paymentCode,
+      bookingId: booking._id,
+      userId,
+      amount: totalAmount,
+      currency: 'LKR',
+      paymentMethod: 'FREE_BOOKING',
+      gateway: 'SIMULATED',
+      paymentStatus: 'SUCCESS',
+      paidAt: new Date(),
+      createdBy: userId
+    });
+
+    // Mark all selected seats as BOOKED and link passengerId
     await Promise.all(
-      seatIds.map(seatId => seatRepository.updateSeatStatus(scheduleId, seatId, SeatStatus.HELD))
+      seatIds.map(seatId => 
+        seatRepository.updateSeatStatus(scheduleId, seatId, SeatStatus.BOOKED)
+      )
     );
 
-    return booking;
+    // Also set passengerId and bookingId on the seat documents
+    const SeatModel = require('../../seat/model/Seat');
+    await Promise.all(
+      seatIds.map(seatId => 
+        SeatModel.findByIdAndUpdate(seatId, { passengerId: userId, bookingId: booking._id })
+      )
+    );
+
+    // Generate ticket
+    const ticketService = require('../../ticket/service/ticketService');
+    const ticket = await ticketService.generateTicket(booking._id, payment._id, userId);
+
+    // Send notification
+    try {
+      const notificationService = require('../../notification/service/notificationService');
+      await notificationService.createNotification({
+        title: 'Booking Confirmed',
+        message: `Your booking ${booking.bookingCode} has been confirmed. Your ticket (${ticket.ticketCode}) is ready.`,
+        type: 'PAYMENT_SUCCESS',
+        userId,
+        metadata: { bookingId: booking._id, ticketId: ticket._id }
+      });
+    } catch (notifError) {
+      console.error('Notification dispatch failed:', notifError);
+    }
+
+    return { booking, ticket };
   }
 
   /**
