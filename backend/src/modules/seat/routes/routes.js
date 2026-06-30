@@ -26,17 +26,17 @@ router.post('/:scheduleId/seats/generate', authenticate, authorize('ADMIN'), gen
 
 /**
  * @route   GET /api/v1/schedules/:scheduleId/seats
- * @desc    Get all seats for a schedule (Admin & Passenger access)
- * @access  Private
+ * @desc    Get all seats for a schedule (Public access)
+ * @access  Public
  */
-router.get('/:scheduleId/seats', authenticate, getSeatsRules, validate, seatController.getSeats);
+router.get('/:scheduleId/seats', getSeatsRules, validate, seatController.getSeats);
 
 /**
  * @route   GET /api/v1/schedules/:scheduleId/seats/:seatId
- * @desc    Retrieve seat details by ID (Admin & Passenger access)
- * @access  Private
+ * @desc    Retrieve seat details by ID (Public access)
+ * @access  Public
  */
-router.get('/:scheduleId/seats/:seatId', authenticate, getSeatRules, validate, seatController.getSeat);
+router.get('/:scheduleId/seats/:seatId', getSeatRules, validate, seatController.getSeat);
 
 /**
  * @route   PATCH /api/v1/schedules/:scheduleId/seats/:seatId/status
