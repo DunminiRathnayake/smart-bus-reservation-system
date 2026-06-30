@@ -298,7 +298,7 @@ const ScheduleManagement = () => {
         fetchSchedules();
       }
     } catch (err) {
-      addToast(err.message || err.normalizedMessage || 'Overlapping conflicts or details mismatches.', 'error');
+      addToast(err.normalizedMessage || err.message || 'Overlapping conflicts or details mismatches.', 'error');
     } finally {
       setIsSubmitting(false);
     }
