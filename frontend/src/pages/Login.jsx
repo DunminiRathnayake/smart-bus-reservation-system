@@ -64,13 +64,8 @@ const Login = () => {
         login(user, token);
         addToast(`Welcome back, ${user.fullName}!`, 'success');
         
-        // Redirect depending on user role or custom redirect origin
-        const from = location.state?.from;
-        if (from) {
-          navigate(from.pathname + from.search, { replace: true });
-        } else {
-          navigate(user.role === 'ROLE_ADMIN' ? '/admin' : '/dashboard');
-        }
+        // Redirect depending on user role
+        navigate(user.role === 'ROLE_ADMIN' ? '/admin' : '/dashboard');
       } else {
         setBackendError(response.message || 'Login failed.');
         addToast(response.message || 'Login failed.', 'error');
