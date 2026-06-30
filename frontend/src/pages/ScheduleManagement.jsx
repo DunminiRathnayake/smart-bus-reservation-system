@@ -67,6 +67,8 @@ const ScheduleManagement = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceDays, setRecurrenceDays] = useState(7);
 
   // Delete dialog states
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -160,6 +162,8 @@ const ScheduleManagement = () => {
 
   const handleOpenAdd = () => {
     setEditingSchedule(null);
+    setIsRecurring(false);
+    setRecurrenceDays(7);
     reset({
       scheduleCode: `SC-${Math.floor(1000 + Math.random() * 9000)}`,
       busId: buses[0]?._id || '',
@@ -210,25 +214,25 @@ const ScheduleManagement = () => {
     setIsSubmitting(true);
     
     try {
-      const travelDate = new Date(data.travelDateInput).toISOString();
-      const departureTime = createISODatetime(data.travelDateInput, data.departureTimeInput);
-      const arrivalTime = createISODatetime(data.travelDateInput, data.arrivalTimeInput);
-      const boardingTime = createISODatetime(data.travelDateInput, data.boardingTimeInput);
-
-      const payload = {
-        scheduleCode: data.scheduleCode,
-        busId: data.busId,
-        routeId: data.routeId,
-        driverId: data.driverId,
-        travelDate,
-        departureTime,
-        arrivalTime,
-        boardingTime,
-        fare: data.fare,
-        status: data.status
-      };
-
       if (editingSchedule) {
+        const travelDate = new Date(data.travelDateInput).toISOString();
+        const departureTime = createISODatetime(data.travelDateInput, data.departureTimeInput);
+        const arrivalTime = createISODatetime(data.travelDateInput, data.arrivalTimeInput);
+        const boardingTime = createISODatetime(data.travelDateInput, data.boardingTimeInput);
+
+        const payload = {
+          scheduleCode: data.scheduleCode,
+          busId: data.busId,
+          routeId: data.routeId,
+          driverId: data.driverId,
+          travelDate,
+          departureTime,
+          arrivalTime,
+          boardingTime,
+          fare: data.fare,
+          status: data.status
+        };
+
         const response = await scheduleService.updateSchedule(editingSchedule._id, payload);
         if (response.success) {
           addToast('Trip schedule updated.', 'success');
@@ -238,17 +242,56 @@ const ScheduleManagement = () => {
           addToast(response.message || 'Update failed.', 'error');
         }
       } else {
-        const response = await scheduleService.createSchedule(payload);
-        if (response.success) {
-          addToast('New trip schedule registered and seats mapped successfully.', 'success');
-          setModalOpen(false);
-          fetchSchedules();
-        } else {
-          addToast(response.message || 'Creation failed.', 'error');
+        // Create Mode
+        const daysToCreate = isRecurring ? recurrenceDays : 1;
+        let createdCount = 0;
+
+        for (let i = 0; i < daysToCreate; i++) {
+          const baseDate = new Date(data.travelDateInput);
+          baseDate.setDate(baseDate.getDate() + i);
+          const dateString = baseDate.toISOString().split('T')[0];
+
+          const travelDate = new Date(dateString).toISOString();
+          const departureTime = createISODatetime(dateString, data.departureTimeInput);
+          const arrivalTime = createISODatetime(dateString, data.arrivalTimeInput);
+          const boardingTime = createISODatetime(dateString, data.boardingTimeInput);
+
+          // Generate code
+          const codeSuffix = isRecurring ? `-${i + 1}` : '';
+          const scheduleCode = `${data.scheduleCode}${codeSuffix}`;
+
+          const payload = {
+            scheduleCode,
+            busId: data.busId,
+            routeId: data.routeId,
+            driverId: data.driverId,
+            travelDate,
+            departureTime,
+            arrivalTime,
+            boardingTime,
+            fare: data.fare,
+            status: data.status
+          };
+
+          const response = await scheduleService.createSchedule(payload);
+          if (response.success) {
+            createdCount++;
+          } else {
+            throw new Error(`Day ${i + 1} (${dateString}) failed: ${response.message || 'Overlap conflict'}`);
+          }
         }
+
+        addToast(
+          isRecurring 
+            ? `Successfully generated ${createdCount} daily schedules and mapped seats.` 
+            : 'New trip schedule registered and seats mapped successfully.', 
+          'success'
+        );
+        setModalOpen(false);
+        fetchSchedules();
       }
     } catch (err) {
-      addToast(err.normalizedMessage || 'Overlapping conflicts or details mismatches.', 'error');
+      addToast(err.message || err.normalizedMessage || 'Overlapping conflicts or details mismatches.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -580,6 +623,41 @@ const ScheduleManagement = () => {
                   {errors.arrivalTimeInput && <p className="text-red-400 text-[10px] mt-0.5">{errors.arrivalTimeInput.message}</p>}
                 </div>
               </div>
+ 
+              {!editingSchedule && (
+                <div className="bg-slate-950/40 p-4 border border-slate-850 rounded-2xl space-y-3 mt-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="isRecurring"
+                      checked={isRecurring}
+                      onChange={(e) => setIsRecurring(e.target.checked)}
+                      className="rounded accent-emerald-500 bg-slate-900 border-slate-800 focus:ring-0 focus:ring-offset-0 h-4 w-4"
+                    />
+                    <label htmlFor="isRecurring" className="font-bold text-slate-300 cursor-pointer uppercase tracking-wider text-[10px]">
+                      Repeat Daily (Auto-Scheduler)
+                    </label>
+                  </div>
+                  
+                  {isRecurring && (
+                    <div className="space-y-1 animate-slide-in">
+                      <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Duration</span>
+                      <select
+                        value={recurrenceDays}
+                        onChange={(e) => setRecurrenceDays(parseInt(e.target.value))}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 focus:outline-none focus:border-emerald-500 text-slate-300 text-xs"
+                      >
+                        <option value={7}>Repeat daily for 7 days</option>
+                        <option value={14}>Repeat daily for 14 days</option>
+                        <option value={30}>Repeat daily for 30 days</option>
+                      </select>
+                      <p className="text-[10px] text-slate-500 leading-relaxed">
+                        This will automatically assign this bus, driver, and route path once daily for the selected timeframe. Conflict and overlap checks are executed for each day.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {editingSchedule && (
                 <div className="space-y-1.5 pt-2">
