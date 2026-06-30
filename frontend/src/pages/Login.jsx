@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,6 +20,7 @@ const Login = () => {
   const { login } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -63,8 +64,13 @@ const Login = () => {
         login(user, token);
         addToast(`Welcome back, ${user.fullName}!`, 'success');
         
-        // Redirect depending on user role
-        navigate(user.role === 'ROLE_ADMIN' ? '/admin' : '/dashboard');
+        // Redirect depending on user role or custom redirect origin
+        const from = location.state?.from;
+        if (from) {
+          navigate(from.pathname + from.search, { replace: true });
+        } else {
+          navigate(user.role === 'ROLE_ADMIN' ? '/admin' : '/dashboard');
+        }
       } else {
         setBackendError(response.message || 'Login failed.');
         addToast(response.message || 'Login failed.', 'error');

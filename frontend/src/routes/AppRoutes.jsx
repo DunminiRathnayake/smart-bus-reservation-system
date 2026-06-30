@@ -51,6 +51,8 @@ const AppRoutes = () => {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/search-bus" element={<SearchBus />} />
+          <Route path="/schedules/:scheduleId" element={<ScheduleDetails />} />
+          <Route path="/schedules/:scheduleId/seats" element={<SeatSelection />} />
           <Route path="/forbidden" element={<Forbidden />} />
         </Route>
 

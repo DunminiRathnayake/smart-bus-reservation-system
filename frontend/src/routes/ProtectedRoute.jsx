@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
@@ -9,6 +9,7 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
  */
 const ProtectedRoute = ({ allowedRoles = [], guestOnly = false }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return <LoadingSpinner fullPage />;
@@ -24,7 +25,7 @@ const ProtectedRoute = ({ allowedRoles = [], guestOnly = false }) => {
 
   // Requiring authentication
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Requiring authorized roles (e.g. ROLE_ADMIN or ROLE_PASSENGER)
