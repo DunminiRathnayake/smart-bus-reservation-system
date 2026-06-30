@@ -89,10 +89,6 @@ class BookingService {
     const farePerSeat = route.baseFare;
     const totalAmount = farePerSeat * numberOfSeats;
 
-    // 5. Configurable hold expiration time
-    const holdMinutes = parseInt(process.env.BOOKING_HOLD_MINUTES) || 10;
-    const bookingExpiresAt = new Date(Date.now() + holdMinutes * 60 * 1000);
-
     // 6. Generate readable booking code
     const bookingCode = await this._generateUniqueBookingCode();
 
