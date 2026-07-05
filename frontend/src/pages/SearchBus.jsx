@@ -566,7 +566,7 @@ const SearchBus = () => {
                         </div>
 
                         <button
-                          onClick={() => navigate(`/schedules/${schedule._id}`)}
+                          onClick={() => navigate(`/schedules/${schedule._id}/seats`)}
                           className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-xs font-black text-slate-950 flex items-center gap-1 shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/25 transition-all transform active:scale-95"
                         >
                           Book Seat <ChevronRight className="h-4 w-4" />
