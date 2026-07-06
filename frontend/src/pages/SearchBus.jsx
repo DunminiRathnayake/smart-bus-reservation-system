@@ -128,8 +128,11 @@ const SearchBus = () => {
       link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
       document.head.appendChild(link);
     }
+    
     // JS
-    if (!document.getElementById('leaflet-js-cdn')) {
+    let intervalId;
+    const scriptEl = document.getElementById('leaflet-js-cdn');
+    if (!scriptEl) {
       const script = document.createElement('script');
       script.id = 'leaflet-js-cdn';
       script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
@@ -138,13 +141,26 @@ const SearchBus = () => {
       };
       document.head.appendChild(script);
     } else {
-      setIsLeafletLoaded(true);
+      if (window.L) {
+        setIsLeafletLoaded(true);
+      } else {
+        intervalId = setInterval(() => {
+          if (window.L) {
+            setIsLeafletLoaded(true);
+            clearInterval(intervalId);
+          }
+        }, 100);
+      }
     }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, []);
 
   // Map instance management
   useEffect(() => {
-    if (!isLeafletLoaded) return;
+    if (!isLeafletLoaded || !window.L) return;
 
     const SRI_LANKA_LAT_LNGS = {
       colombo: [6.9271, 79.8612],
