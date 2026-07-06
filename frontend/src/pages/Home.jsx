@@ -169,7 +169,21 @@ const Home = () => {
                   value={travelDate}
                   min={new Date().toISOString().split('T')[0]}
                   onChange={(e) => setTravelDate(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-850 rounded-xl py-3 px-3 focus:outline-none focus:border-emerald-500 text-slate-200"
+                  onClick={(e) => {
+                    try {
+                      e.target.showPicker();
+                    } catch (err) {
+                      console.warn('showPicker not supported:', err);
+                    }
+                  }}
+                  onFocus={(e) => {
+                    try {
+                      e.target.showPicker();
+                    } catch (err) {
+                      console.warn('showPicker not supported:', err);
+                    }
+                  }}
+                  className="w-full bg-slate-900 border border-slate-850 rounded-xl py-3 px-3 focus:outline-none focus:border-emerald-500 text-slate-200 cursor-pointer"
                   required
                 />
               </div>

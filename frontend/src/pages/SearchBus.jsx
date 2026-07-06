@@ -416,7 +416,21 @@ const SearchBus = () => {
               type="date"
               value={filters.travelDate}
               onChange={(e) => setFilters({ ...filters, travelDate: e.target.value })}
-              className="w-full bg-slate-950 border border-slate-850 rounded-xl py-3 px-4 focus:outline-none focus:border-emerald-500 text-sm text-slate-200"
+              onClick={(e) => {
+                try {
+                  e.target.showPicker();
+                } catch (err) {
+                  console.warn('showPicker not supported:', err);
+                }
+              }}
+              onFocus={(e) => {
+                try {
+                  e.target.showPicker();
+                } catch (err) {
+                  console.warn('showPicker not supported:', err);
+                }
+              }}
+              className="w-full bg-slate-950 border border-slate-850 rounded-xl py-3 px-4 focus:outline-none focus:border-emerald-500 text-sm text-slate-200 cursor-pointer"
             />
           </div>
         </div>
