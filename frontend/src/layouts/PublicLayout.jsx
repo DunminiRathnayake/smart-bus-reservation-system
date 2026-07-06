@@ -13,35 +13,41 @@ const PublicLayout = () => {
   return (
     <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100 font-sans">
       {/* Top Header */}
-      <header className="sticky top-0 z-50 border-b border-slate-900 bg-slate-950/80 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-slate-900 bg-slate-950/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2.5 group">
-            <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 group-hover:scale-105 transition-all">
-              <Bus className="h-6 w-6" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent">
-              SmartGo
+          <Link to="/" className="flex items-center space-x-2 group">
+            <span className="text-2xl font-extrabold tracking-tighter text-slate-100 font-mono italic">
+              SMART<span className="text-indigo-400">GO</span>
             </span>
           </Link>
 
-          <nav className="flex items-center space-x-6">
-            <Link to="/search-bus" className="text-sm font-medium hover:text-emerald-400 transition-colors">
-              Search Buses
+          <nav className="flex items-center space-x-8">
+            <Link to="/search-bus" className="text-sm font-semibold text-slate-300 hover:text-indigo-400 transition-colors">
+              Journeys
             </Link>
+            <span className="text-sm font-semibold text-slate-500 cursor-not-allowed">
+              Events
+            </span>
+            <Link to={user ? "/bookings" : "/login"} className="text-sm font-semibold text-slate-300 hover:text-indigo-400 transition-colors">
+              My Tickets
+            </Link>
+            <span className="text-sm font-semibold text-slate-500 cursor-not-allowed">
+              Contact
+            </span>
             
             {user ? (
               <Link
                 to={user.role === 'ROLE_ADMIN' ? '/admin' : '/dashboard'}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 rounded-xl font-semibold text-sm text-slate-950 transition-colors shadow-md shadow-emerald-500/10"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 rounded-xl font-bold text-sm text-slate-100 transition-colors shadow-md shadow-indigo-500/10"
               >
                 <User className="h-4 w-4" /> Dashboard
               </Link>
             ) : (
               <Link
                 to="/login"
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl font-semibold text-sm transition-colors text-slate-200"
+                className="inline-flex items-center gap-1.5 px-5 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-sm transition-all text-slate-950 shadow"
               >
-                <LogIn className="h-4 w-4" /> Sign In
+                Login
               </Link>
             )}
           </nav>

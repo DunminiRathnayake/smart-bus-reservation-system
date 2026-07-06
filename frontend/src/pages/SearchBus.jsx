@@ -116,6 +116,93 @@ const SearchBus = () => {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [expandedScheduleId, setExpandedScheduleId] = useState(null);
+  const [isLeafletLoaded, setIsLeafletLoaded] = useState(false);
+
+  // Dynamic loading of Leaflet assets
+  useEffect(() => {
+    // CSS
+    if (!document.getElementById('leaflet-css-cdn')) {
+      const link = document.createElement('link');
+      link.id = 'leaflet-css-cdn';
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+    // JS
+    if (!document.getElementById('leaflet-js-cdn')) {
+      const script = document.createElement('script');
+      script.id = 'leaflet-js-cdn';
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload = () => {
+        setIsLeafletLoaded(true);
+      };
+      document.head.appendChild(script);
+    } else {
+      setIsLeafletLoaded(true);
+    }
+  }, []);
+
+  // Map instance management
+  useEffect(() => {
+    if (!isLeafletLoaded) return;
+
+    const SRI_LANKA_LAT_LNGS = {
+      colombo: [6.9271, 79.8612],
+      negombo: [7.2089, 79.8353],
+      kandy: [7.2906, 80.6337],
+      kurunegala: [7.4863, 80.3647],
+      matara: [5.9549, 80.5550],
+      galle: [6.0535, 80.2210],
+      ella: [6.8667, 81.0466],
+      kataragama: [6.4132, 81.3326],
+      jaffna: [9.6615, 80.0255],
+      trincomalee: [8.5873, 81.2152],
+      batticaloa: [7.7170, 81.7010],
+      panadura: [6.7106, 79.9074]
+    };
+
+    const container = document.getElementById('leaflet-map-container');
+    if (!container) return;
+
+    if (window.leafletMapInstance) {
+      window.leafletMapInstance.remove();
+      window.leafletMapInstance = null;
+    }
+
+    const map = window.L.map('leaflet-map-container', {
+      zoomControl: true,
+      scrollWheelZoom: false
+    }).setView([7.8731, 80.7718], 7.5);
+
+    window.leafletMapInstance = map;
+
+    // Satellite view matching Magiya theme
+    window.L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS'
+    }).addTo(map);
+
+    const originKey = filters.origin ? filters.origin.trim().toLowerCase() : '';
+    const destKey = filters.destination ? filters.destination.trim().toLowerCase() : '';
+    const mapOrigin = SRI_LANKA_LAT_LNGS[originKey];
+    const mapDest = SRI_LANKA_LAT_LNGS[destKey];
+
+    if (mapOrigin && mapDest) {
+      const originMarker = window.L.marker(mapOrigin).addTo(map);
+      originMarker.bindPopup(`<b>Start</b>: ${filters.origin}`).openPopup();
+
+      const destMarker = window.L.marker(mapDest).addTo(map);
+      destMarker.bindPopup(`<b>End</b>: ${filters.destination}`);
+
+      const polyline = window.L.polyline([mapOrigin, mapDest], {
+        color: '#5F73F2', // Solid periwinkle-blue connector
+        weight: 4,
+        opacity: 0.8,
+        dashArray: '8, 8'
+      }).addTo(map);
+
+      map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+    }
+  }, [isLeafletLoaded, filters.origin, filters.destination, filteredSchedules]);
 
   const fetchSchedules = async () => {
     if (!filters.origin || !filters.destination) {
@@ -408,14 +495,14 @@ const SearchBus = () => {
 
       {/* Date Carousel Slider - Magiya style */}
       {hasSearched && carouselDates.length > 0 && (
-        <div className="flex items-center justify-between bg-slate-900/50 border border-slate-850 p-3 rounded-2xl max-w-4xl mx-auto shadow-sm">
+        <div className="flex items-center justify-between bg-slate-900/40 border border-slate-850 p-2.5 rounded-2xl max-w-4xl mx-auto shadow-lg mb-6">
           <button
             onClick={() => {
               const prev = new Date(filters.travelDate);
               prev.setDate(prev.getDate() - 1);
               setFilters(f => ({ ...f, travelDate: prev.toISOString().split('T')[0] }));
             }}
-            className="p-2 hover:bg-slate-850 rounded-xl text-slate-400 hover:text-slate-200 transition-colors"
+            className="p-2 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-200 transition-colors"
           >
             <ChevronLeft className="h-4.5 w-4.5" />
           </button>
@@ -431,14 +518,14 @@ const SearchBus = () => {
                 <button
                   key={idx}
                   onClick={() => handleCarouselDateSelect(date)}
-                  className={`px-4.5 py-2.5 rounded-xl border text-center transition-all min-w-[90px] ${
+                  className={`px-5 py-2 rounded-xl text-center transition-all min-w-[100px] border ${
                     isSelected
-                      ? 'bg-emerald-500 border-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/10'
-                      : 'bg-slate-900 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                      ? 'bg-[#5F73F2] border-[#5F73F2] text-white font-bold shadow-md shadow-indigo-500/20'
+                      : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'
                   }`}
                 >
-                  <p className="text-[10px] uppercase font-bold tracking-wider">{dayStr}</p>
-                  <p className="text-xs font-semibold mt-0.5">{dateStr}</p>
+                  <p className="text-[10px] uppercase font-semibold tracking-wider opacity-75">{dayStr}</p>
+                  <p className="text-xs font-bold mt-0.5">{dateStr}</p>
                 </button>
               );
             })}
@@ -485,104 +572,115 @@ const SearchBus = () => {
                 return (
                   <div
                     key={String(schedule._id)}
-                    className="bg-slate-900 border border-slate-850 hover:border-emerald-500/30 rounded-3xl p-5 sm:p-6 transition-all duration-300 shadow-lg flex flex-col justify-between gap-5 relative overflow-hidden"
+                    className="bg-[#18181C] border border-[#26262B] rounded-3xl p-5 sm:p-6 transition-all duration-300 shadow-xl flex flex-col gap-4.5 relative overflow-hidden"
                   >
-                    {/* Top Badges / Row */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-850/60 pb-3.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-200">
-                          {schedule.routeId?.origin ? String(schedule.routeId.origin) : ''} ➔ {schedule.routeId?.destination ? String(schedule.routeId.destination) : ''}
+                    {/* Header: Magiya Style (Kandy - Colombo NCG Express • Super Luxury) */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/40">
+                      <div className="flex flex-wrap items-center gap-2 text-sm">
+                        <span className="font-extrabold text-slate-100">
+                          {schedule.routeId?.origin ? String(schedule.routeId.origin) : ''} - {schedule.routeId?.destination ? String(schedule.routeId.destination) : ''}
                         </span>
-                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 border border-emerald-500/10 rounded">
-                          {schedule.busId?.busName ? String(schedule.busId.busName) : 'SmartGo Express'}
+                        <span className="text-slate-500 font-medium font-sans">
+                          {schedule.busId?.busName ? String(schedule.busId.busName) : 'NCG Express'} • {schedule.busId?.type ? String(schedule.busId.type) : 'Super Luxury'}
                         </span>
-                        <span className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">
-                          {schedule.busId?.type ? String(schedule.busId.type) : 'Luxury AC'}
-                        </span>
+                        <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full shadow-inner ml-1">
+                          <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Certified
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/20 px-2.5 py-0.5 rounded-full shadow-inner">
-                        <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Certified Route
+                      
+                      {/* Rating Label (Magiya style 0.0 star badge) */}
+                      <div className="text-xs font-bold text-yellow-500 flex items-center gap-1">
+                        <span>0.0</span>
+                        <span className="text-[10px] text-yellow-600">★</span>
                       </div>
                     </div>
 
-                    {/* Middle Core Times Details */}
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 py-1">
-                      {/* Departure */}
-                      <div className="space-y-1">
-                        <span className="text-[9px] font-bold text-slate-550 uppercase tracking-widest block">DEPARTURE</span>
-                        <p className="text-xl font-bold font-mono text-slate-100">{formatTime(schedule.departureTime)}</p>
-                        <p className="text-xs font-bold text-slate-350">{schedule.routeId?.origin ? String(schedule.routeId.origin) : ''}</p>
-                        <p className="text-[10px] text-slate-500 font-semibold">{formatDate(schedule.departureTime)}</p>
+                    {/* Main Row: Departure / Connection / Arrival / Action */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center py-1">
+                      {/* Departure Block */}
+                      <div className="space-y-1.5">
+                        <p className="text-2xl font-black text-indigo-400 tracking-tight font-mono">{formatTime(schedule.departureTime)}</p>
+                        <span className="inline-block text-[8px] font-extrabold text-slate-400 bg-slate-800 px-2 py-0.5 rounded tracking-widest uppercase">DEPARTURE</span>
+                        <p className="text-xs font-extrabold text-slate-200 mt-1">{schedule.routeId?.origin ? String(schedule.routeId.origin) : ''}</p>
+                        <p className="text-[9px] text-slate-500 font-semibold">{formatDate(schedule.departureTime)}</p>
                       </div>
 
-                      {/* Travel Line */}
-                      <div className="flex-grow flex flex-col items-center justify-center min-w-[120px] w-full md:w-auto mt-2 md:mt-0">
-                        <div className="text-[10px] font-bold text-slate-450 mb-1 flex items-center gap-1 font-mono">
-                          <Clock className="h-3.5 w-3.5 text-slate-500" /> {getDurationText(schedule)}
+                      {/* Travel Line Connector */}
+                      <div className="flex flex-col items-center justify-center w-full">
+                        <div className="relative w-full h-[1.5px] bg-slate-800 flex items-center">
+                          <div className="absolute right-0 translate-x-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold">→</div>
                         </div>
-                        <div className="relative w-full h-[2px] bg-slate-800 flex items-center">
-                          <div className="absolute left-0 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                          <div className="absolute right-0 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                          <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-full text-[9px] text-emerald-400 font-bold flex items-center gap-1 shadow-md">
-                            <Bus className="h-3 w-3 animate-pulse" />
-                          </div>
-                        </div>
-                        <span className="text-[9px] text-slate-500 font-semibold mt-1">Express Transit</span>
+                        <span className="text-[10px] text-slate-500 font-bold mt-2 font-mono flex items-center gap-1">
+                          <Clock className="h-3 w-3 text-slate-500" /> {getDurationText(schedule)}
+                        </span>
                       </div>
 
-                      {/* Arrival */}
-                      <div className="space-y-1 text-left md:text-right">
-                        <span className="text-[9px] font-bold text-slate-550 uppercase tracking-widest block">ARRIVAL</span>
-                        <p className="text-xl font-bold font-mono text-slate-100">{formatTime(schedule.arrivalTime)}</p>
-                        <p className="text-xs font-bold text-slate-350">{schedule.routeId?.destination ? String(schedule.routeId.destination) : ''}</p>
-                        <p className="text-[10px] text-slate-500 font-semibold">{formatDate(schedule.arrivalTime)}</p>
+                      {/* Arrival Block */}
+                      <div className="space-y-1.5 md:pl-4">
+                        <p className="text-2xl font-black text-indigo-400 tracking-tight font-mono">{formatTime(schedule.arrivalTime)}</p>
+                        <span className="inline-block text-[8px] font-extrabold text-slate-400 bg-slate-800 px-2 py-0.5 rounded tracking-widest uppercase">ARRIVAL</span>
+                        <p className="text-xs font-extrabold text-slate-200 mt-1">{schedule.routeId?.destination ? String(schedule.routeId.destination) : ''}</p>
+                        <p className="text-[9px] text-slate-500 font-semibold">{formatDate(schedule.arrivalTime)}</p>
+                      </div>
+
+                      {/* Fare and Button */}
+                      <div className="flex flex-col items-end md:items-end justify-center space-y-3">
+                        <div className="text-right">
+                          <p className="text-2xl font-black text-slate-100 font-mono tracking-tight">
+                            {baseFareNum.toLocaleString()}
+                            <span className="text-xs font-bold text-slate-400 ml-1">LKR</span>
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => navigate(`/schedules/${schedule._id}/seats`)}
+                          className="w-full px-5 py-2.5 bg-[#5F73F2] hover:bg-[#4E61E0] rounded-xl text-xs font-black text-white flex items-center justify-center gap-1 shadow-lg shadow-indigo-500/20 transition-all transform active:scale-95"
+                        >
+                          Book Now <ChevronRight className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
 
-                    {/* Bottom Actions Row */}
-                    <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-850/60 pt-3.5 mt-1">
-                      {/* Left: Stop accordion & Seats counter */}
-                      <div className="flex items-center gap-4.5">
+                    {/* Card Footer: Details & Timetable Buttons */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-800/40 pt-3">
+                      {/* Left: View Stops and Seats Counter */}
+                      <div className="flex items-center gap-4 text-xs">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setExpandedScheduleId(expandedScheduleId === schedule._id ? null : schedule._id);
                           }}
-                          className="flex items-center gap-1 text-[11px] font-bold text-slate-450 hover:text-emerald-400 transition-colors bg-slate-950/60 border border-slate-850 px-3 py-1.5 rounded-xl shadow-inner"
+                          className="flex items-center gap-1 text-[11px] font-extrabold text-slate-400 hover:text-indigo-400 transition-colors bg-slate-900 border border-slate-800/80 px-3 py-1.5 rounded-full shadow-inner"
                         >
                           <Info className="h-3.5 w-3.5" />
-                          {expandedScheduleId === schedule._id ? 'Hide Stops' : 'View Stops'}
+                          {expandedScheduleId === schedule._id ? 'Hide Details' : 'Details'}
                         </button>
-                        <div className="text-[11px] text-slate-450">
-                          Seats Left: <span className="font-bold text-emerald-400 font-mono">{availableSeats}</span>
-                        </div>
-                      </div>
-
-                      {/* Right: Price & Booking */}
-                      <div className="flex items-center gap-5">
-                        <div className="flex items-center font-mono font-black text-emerald-400 text-xl">
-                          <DollarSign className="h-5 w-5 text-emerald-500" />
-                          <span>{baseFareNum.toFixed(2)}</span>
-                        </div>
-
                         <button
-                          onClick={() => navigate(`/schedules/${schedule._id}/seats`)}
-                          className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-xs font-black text-slate-950 flex items-center gap-1 shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/25 transition-all transform active:scale-95"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedScheduleId(expandedScheduleId === schedule._id ? null : schedule._id);
+                          }}
+                          className="flex items-center gap-1 text-[11px] font-extrabold text-slate-400 hover:text-indigo-400 transition-colors bg-slate-900 border border-slate-800/80 px-3 py-1.5 rounded-full shadow-inner"
                         >
-                          Book Seat <ChevronRight className="h-4 w-4" />
+                          <CalendarDays className="h-3.5 w-3.5" />
+                          Timetable
                         </button>
+                      </div>
+                      
+                      {/* Seats available display */}
+                      <div className="text-[11px] text-slate-400 font-medium">
+                        Only <span className="font-extrabold text-emerald-400 font-mono">{availableSeats}</span> seats available
                       </div>
                     </div>
 
                     {/* Collapsible Station Accordion Details */}
                     {expandedScheduleId === schedule._id && (
-                      <div className="w-full bg-slate-950/50 border border-slate-850 p-5 rounded-2xl animate-slide-in space-y-3">
+                      <div className="w-full bg-slate-950/60 border border-slate-850 p-5 rounded-2xl animate-slide-in space-y-3">
                         <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Stations & Schedule Timeline</h4>
                         <div className="space-y-4 relative pl-5 before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-[1.5px] before:bg-slate-850">
                           {/* Start Origin */}
                           <div className="relative text-xs">
-                            <div className="absolute -left-[17px] top-1 h-2.5 w-2.5 bg-emerald-500 border border-slate-950 rounded-full" />
-                            <span className="font-bold text-slate-355">{schedule.routeId?.origin}</span>
+                            <div className="absolute -left-[17px] top-1 h-2.5 w-2.5 bg-indigo-500 border border-slate-950 rounded-full" />
+                            <span className="font-bold text-slate-300">{schedule.routeId?.origin}</span>
                             <span className="text-[10px] text-slate-500 ml-2">Departed at {formatTime(schedule.departureTime)}</span>
                           </div>
                           
@@ -604,8 +702,8 @@ const SearchBus = () => {
 
                           {/* End Destination */}
                           <div className="relative text-xs">
-                            <div className="absolute -left-[17px] top-1 h-2.5 w-2.5 bg-emerald-500 border border-slate-950 rounded-full" />
-                            <span className="font-bold text-slate-355">{schedule.routeId?.destination}</span>
+                            <div className="absolute -left-[17px] top-1 h-2.5 w-2.5 bg-indigo-500 border border-slate-950 rounded-full" />
+                            <span className="font-bold text-slate-300">{schedule.routeId?.destination}</span>
                             <span className="text-[10px] text-slate-500 ml-2">Arriving at {formatTime(schedule.arrivalTime)}</span>
                           </div>
                         </div>
@@ -627,154 +725,18 @@ const SearchBus = () => {
           )}
         </div>
 
-        {/* Right Column: Dynamic SVG Map Widget & Stats Card (1/3 width) */}
+        {/* Right Column: Interactive Leaflet Map Widget (1/3 width) */}
         <div className="space-y-6">
-          {/* SVG Map Widget */}
-          <div className="bg-slate-900 border border-slate-850 p-6 rounded-3xl shadow-xl space-y-4">
+          <div className="bg-[#18181C] border border-[#26262B] p-4.5 rounded-3xl shadow-xl space-y-4">
             <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-              <MapIcon className="h-4.5 w-4.5 text-emerald-450" /> Route Map Preview
+              <MapIcon className="h-4.5 w-4.5 text-indigo-400" /> Route Tracker Map
             </h3>
 
-            <div className="relative bg-slate-950 border border-slate-850 rounded-2xl overflow-hidden p-4 flex items-center justify-center min-h-[360px] shadow-inner">
-              <div className="absolute top-2 right-2 flex items-center gap-1 text-[8px] font-bold text-slate-600 bg-slate-900 border border-slate-850 px-2 py-0.5 rounded uppercase tracking-wider">
-                <Sparkles className="h-2 w-2 text-emerald-400 animate-pulse" /> Live Tracker
-              </div>
-
-              {/* Sri Lankan SVG Interactive Map Grid */}
-              <svg width="220" height="380" viewBox="0 0 220 380" className="w-full h-auto text-slate-800">
-                {/* Main Sri Lanka Coast Outline */}
-                <path
-                  d="M 115,35 C 105,35 95,40 90,45 C 80,50 75,55 82,65 C 88,72 88,80 82,85 C 76,90 68,95 62,105 C 56,115 54,130 55,145 C 56,160 59,175 62,190 C 65,205 66,220 68,235 C 70,250 71,265 74,280 C 77,295 78,310 82,325 C 86,340 92,350 100,358 C 108,365 118,367 128,365 C 138,363 148,358 158,350 C 168,342 178,332 185,320 C 192,308 195,295 195,280 C 195,265 193,250 191,235 C 189,220 187,205 185,190 C 183,175 180,160 176,145 C 172,130 160,122 165,115 C 170,108 172,98 165,90 C 158,82 150,75 145,65 C 140,55 130,45 120,38 C 118,36 117,35 115,35 Z"
-                  fill="rgba(16, 185, 129, 0.03)"
-                  stroke="rgba(16, 185, 129, 0.3)"
-                  strokeWidth="1.5"
-                  className="transition-all duration-300"
-                />
-
-                {/* Mannar Island */}
-                <path
-                  d="M 52,85 C 47,87 45,92 50,94 C 55,96 56,90 52,85 Z"
-                  fill="rgba(16, 185, 129, 0.03)"
-                  stroke="rgba(16, 185, 129, 0.25)"
-                  strokeWidth="1"
-                />
-
-                {/* Delft Island */}
-                <path
-                  d="M 68,52 C 65,54 64,58 69,60 C 74,62 73,55 68,52 Z"
-                  fill="rgba(16, 185, 129, 0.03)"
-                  stroke="rgba(16, 185, 129, 0.25)"
-                  strokeWidth="1"
-                />
-
-                {/* Cities Dots */}
-                {Object.entries(SRI_LANKA_COORDS).map(([key, city]) => {
-                  const isOrigin = key === originKey;
-                  const isDest = key === destKey;
-                  const isNode = isOrigin || isDest;
-
-                  return (
-                    <g key={key}>
-                      <circle
-                        cx={city.x}
-                        cy={city.y}
-                        r={isNode ? 4.5 : 2}
-                        fill={isOrigin ? '#10b981' : isDest ? '#3b82f6' : '#334155'}
-                        className={isNode ? 'animate-pulse' : ''}
-                      />
-                      {isNode && (
-                        <circle
-                          cx={city.x}
-                          cy={city.y}
-                          r="10"
-                          fill="none"
-                          stroke={isOrigin ? '#10b981' : '#3b82f6'}
-                          strokeWidth="1"
-                          className="animate-ping"
-                          style={{ animationDuration: '3s' }}
-                        />
-                      )}
-                      {(isNode || ['colombo', 'kandy', 'galle', 'jaffna'].includes(key)) && (
-                        <text
-                          x={city.x + 6}
-                          y={city.y + 3}
-                          fill={isNode ? '#e2e8f0' : '#475569'}
-                          fontSize="8"
-                          fontWeight={isNode ? 'bold' : 'normal'}
-                          className="font-sans"
-                        >
-                          {city.name}
-                        </text>
-                      )}
-                    </g>
-                  );
-                })}
-
-                {/* Connecting Transit Line */}
-                {mapOrigin && mapDest && (
-                  <g>
-                    {/* Glow outline */}
-                    <line
-                      x1={mapOrigin.x}
-                      y1={mapOrigin.y}
-                      x2={mapDest.x}
-                      y2={mapDest.y}
-                      stroke="#10b981"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      opacity="0.3"
-                      className="blur-[1px]"
-                    />
-                    {/* Main path */}
-                    <line
-                      x1={mapOrigin.x}
-                      y1={mapOrigin.y}
-                      x2={mapDest.x}
-                      y2={mapDest.y}
-                      stroke="#10b981"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeDasharray="5,5"
-                    >
-                      <animate
-                        attributeName="stroke-dashoffset"
-                        values="50;0"
-                        dur="3s"
-                        repeatCount="indefinite"
-                      />
-                    </line>
-                  </g>
-                )}
-              </svg>
+            {/* Interactive Leaflet container */}
+            <div className="relative w-full rounded-2xl overflow-hidden shadow-inner">
+              <div id="leaflet-map-container" style={{ height: '390px', width: '100%' }} className="bg-slate-950 z-10"></div>
             </div>
           </div>
-
-          {/* Route Stats Card */}
-          {mapOrigin && mapDest && (
-            <div className="bg-slate-900 border border-slate-850 p-6 rounded-3xl shadow-xl space-y-4">
-              <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                <Navigation className="h-4.5 w-4.5 text-emerald-450" /> Route Statistics
-              </h4>
-
-              <div className="space-y-3.5 text-xs text-slate-400">
-                <div className="flex justify-between border-b border-slate-850/50 pb-2">
-                  <span>Connection Path</span>
-                  <span className="font-bold text-slate-200">{mapOrigin.name} ➔ {mapDest.name}</span>
-                </div>
-                <div className="flex justify-between border-b border-slate-850/50 pb-2">
-                  <span>Average Speed</span>
-                  <span className="font-bold text-slate-200 font-mono">65 km/h</span>
-                </div>
-                <div className="flex justify-between border-b border-slate-850/50 pb-2">
-                  <span>Transit Type</span>
-                  <span className="font-bold text-emerald-400">Highway Express</span>
-                </div>
-                <p className="text-[10px] text-slate-500 leading-relaxed pt-1">
-                  * Live route highlights reflect expressway connections (E01/E02) or main arterial highways. Actual transit times can vary based on local traffic conditions.
-                </p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
