@@ -9,7 +9,8 @@ import BookingStepper from '../components/common/BookingStepper';
 import BookingSidebar from '../components/common/BookingSidebar';
 import PageLoader from '../components/common/PageLoader';
 import { useToast } from '../contexts/ToastContext';
-import { ArrowLeft, Loader2, CreditCard, AlertCircle, Info, ChevronRight, CalendarDays, Clock } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { ArrowLeft, Loader2, CreditCard, AlertCircle, Info, ChevronRight, CalendarDays, Clock, User } from 'lucide-react';
 
 const formatTime = (isoString) => {
   if (!isoString) return 'N/A';
@@ -46,6 +47,7 @@ const BookingReview = () => {
   const { scheduleId } = useParams();
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
 
   const seatNames = searchParams.get('seats')?.split(',') || [];
@@ -88,18 +90,18 @@ const BookingReview = () => {
     formState: { errors }
   } = useForm({
     resolver: zodResolver(bookingSchema),
-    defaultValues: { passengerName: '', passengerEmail: '', passengerPhone: '' }
+    defaultValues: { passengerName: user?.fullName || '', passengerEmail: user?.email || '', passengerPhone: user?.phoneNumber || '' }
   });
 
-  const onSubmit = async (data) => {
+  const onSubmit = async () => {
     setIsSubmitting(true);
     try {
       const payload = {
         scheduleId,
         seatIds,
-        passengerName: data.passengerName,
-        passengerEmail: data.passengerEmail,
-        passengerPhone: data.passengerPhone
+        passengerName: user?.fullName || 'Dunmini',
+        passengerEmail: user?.email || 'passenger@smartgo.com',
+        passengerPhone: user?.phoneNumber || '+94777934012'
       };
 
       const response = await bookingService.createBooking(payload);
@@ -258,86 +260,32 @@ const BookingReview = () => {
 
           {/* Step 2: Passenger Information */}
           <div className="bg-[#18181C] border border-[#26262B] p-6 rounded-3xl shadow-xl space-y-5">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#5F73F2] text-white flex items-center justify-center font-bold text-sm shrink-0">
-                2
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#5F73F2] text-white flex items-center justify-center font-bold text-sm shrink-0">
+                  2
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-200">Passenger Information</h3>
+                  <p className="text-[10px] text-slate-500">Fill out the form below and verify your identity.</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-200">Passenger Information</h3>
-                <p className="text-[10px] text-slate-500">Fill out the form below and verify your identity</p>
-              </div>
+              <button type="button" className="p-1 text-slate-400 hover:text-indigo-400">
+                <ChevronRight className="h-4 w-4 transform rotate-90" />
+              </button>
             </div>
 
-            <div className="space-y-4.5 pt-2">
-              {/* Identity & Verification inputs */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Country Code</label>
-                  <select
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl py-3 px-4 text-xs text-slate-300 focus:outline-none"
-                  >
-                    <option>Sri Lanka (+94)</option>
-                  </select>
+            <div className="pt-2">
+              <div className="border border-slate-800 bg-slate-950/40 p-5 rounded-2xl flex items-center gap-5 shadow-inner">
+                {/* Avatar circle */}
+                <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-800 shrink-0 shadow-md">
+                  <User className="h-8 w-8 text-slate-600" />
                 </div>
-
-                <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Contact Phone Number</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Your contact number without leading zero"
-                      {...registerField('passengerPhone')}
-                      className={`flex-grow bg-slate-950 border ${
-                        errors.passengerPhone ? 'border-red-500/50' : 'border-slate-850'
-                      } rounded-xl py-3 px-4 text-xs text-slate-350 focus:outline-none focus:border-indigo-500`}
-                      disabled={isSubmitting}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => addToast('Identity verified successfully.', 'success')}
-                      className="px-5 py-3 bg-[#5F73F2] hover:bg-[#4E61E0] text-white font-bold text-xs rounded-xl shadow transition-colors"
-                    >
-                      Verify
-                    </button>
-                  </div>
-                </div>
-              </div>
-              {errors.passengerPhone && (
-                <p className="text-red-400 text-[10px] mt-0.5">{errors.passengerPhone.message}</p>
-              )}
-
-              {/* Passenger Name & Email Fields to satisfy DB validation schema */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Passenger Name</label>
-                  <input
-                    type="text"
-                    placeholder="Full Passenger Name"
-                    {...registerField('passengerName')}
-                    className={`w-full bg-slate-950 border ${
-                      errors.passengerName ? 'border-red-500/50' : 'border-slate-850'
-                    } rounded-xl py-3 px-4 text-xs text-slate-350 focus:outline-none focus:border-indigo-500`}
-                    disabled={isSubmitting}
-                  />
-                  {errors.passengerName && (
-                    <p className="text-red-400 text-[10px] mt-0.5">{errors.passengerName.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Passenger Email Address</label>
-                  <input
-                    type="email"
-                    placeholder="name@example.com"
-                    {...registerField('passengerEmail')}
-                    className={`w-full bg-slate-950 border ${
-                      errors.passengerEmail ? 'border-red-500/50' : 'border-slate-850'
-                    } rounded-xl py-3 px-4 text-xs text-slate-350 focus:outline-none focus:border-indigo-500`}
-                    disabled={isSubmitting}
-                  />
-                  {errors.passengerEmail && (
-                    <p className="text-red-400 text-[10px] mt-0.5">{errors.passengerEmail.message}</p>
-                  )}
+                {/* Details */}
+                <div className="space-y-1.5 text-xs text-slate-300 font-medium">
+                  <p><span className="text-slate-550 font-extrabold font-mono">Name :</span> {user?.fullName || 'Dunmini'}</p>
+                  <p><span className="text-slate-550 font-extrabold font-mono">Gender :</span> {user?.gender || 'Female'}</p>
+                  <p><span className="text-slate-550 font-extrabold font-mono">Contact :</span> {user?.phoneNumber || '+94777934012'}</p>
                 </div>
               </div>
             </div>

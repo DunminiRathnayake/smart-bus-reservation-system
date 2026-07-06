@@ -354,27 +354,7 @@ const SeatSelection = () => {
                 return;
               }
 
-              setIsSubmitting(true);
-              try {
-                const payload = {
-                  scheduleId,
-                  seatIds: ids,
-                  passengerName: user.fullName,
-                  passengerEmail: user.email,
-                  passengerPhone: user.phoneNumber || '0771234567'
-                };
-                const res = await bookingService.createBooking(payload);
-                if (res.success && res.data) {
-                  addToast('Booking confirmed successfully!', 'success');
-                  navigate(`/tickets/${res.data.ticket._id}`);
-                } else {
-                  addToast(res.message || 'Failed to confirm booking.', 'error');
-                }
-              } catch (err) {
-                addToast(err.normalizedMessage || 'Error creating booking.', 'error');
-              } finally {
-                setIsSubmitting(false);
-              }
+              navigate(`/schedules/${scheduleId}/book?seats=${selectedSeats.join(',')}&seatIds=${ids.join(',')}`);
             }}
             disabled={selectedSeats.length === 0 || isSubmitting}
             className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-emerald-500/10"
