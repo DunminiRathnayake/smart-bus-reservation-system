@@ -86,6 +86,17 @@ const TicketDetails = () => {
         <BookingStepper currentStep={5} />
       </div>
 
+      {/* Booking Confirmed Banner */}
+      <div className="bg-emerald-500/10 border border-emerald-500/20 p-5 rounded-3xl flex items-center gap-4 animate-fade-in hide-on-print">
+        <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-2xl shrink-0">
+          <ShieldCheck className="h-6 w-6" />
+        </div>
+        <div>
+          <h3 className="text-sm font-bold text-slate-100">Booking Confirmed!</h3>
+          <p className="text-[10px] text-slate-400 mt-0.5">Your seat has been reserved successfully. You can now download or print your boarding pass below.</p>
+        </div>
+      </div>
+
       {/* Ticket Card container */}
       <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl shadow-emerald-950/5 relative">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />

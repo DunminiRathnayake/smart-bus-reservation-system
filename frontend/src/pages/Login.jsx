@@ -65,12 +65,27 @@ const Login = () => {
         login(user, token);
         addToast(`Welcome back, ${user.fullName}!`, 'success');
 
-        // Redirect to booking review page if passenger came from seat selector
+        // Auto-complete booking redirect if passenger came from seat selector
         const bookingRedirect = location.state?.bookingRedirect;
         if (bookingRedirect && user.role === 'ROLE_PASSENGER') {
-          addToast('Login successful! Continuing booking review...', 'success');
-          navigate(`/schedules/${bookingRedirect.scheduleId}/book?seats=${bookingRedirect.seatNames.join(',')}&seatIds=${bookingRedirect.seatIds.join(',')}`, { replace: true });
-          return;
+          try {
+            const payload = {
+              scheduleId: bookingRedirect.scheduleId,
+              seatIds: bookingRedirect.seatIds,
+              passengerName: user.fullName,
+              passengerEmail: user.email,
+              passengerPhone: user.phoneNumber || '0771234567'
+            };
+            const bookingRes = await bookingService.createBooking(payload);
+            if (bookingRes.success && bookingRes.data) {
+              addToast('Booking auto-confirmed successfully!', 'success');
+              navigate(`/tickets/${bookingRes.data.ticket._id}`, { replace: true });
+              return;
+            }
+          } catch (bookingErr) {
+            console.error('Auto-booking confirmation failed:', bookingErr);
+            addToast('Login success but failed to auto-confirm seats. Please re-select.', 'warning');
+          }
         }
         
         // Redirect depending on user role
