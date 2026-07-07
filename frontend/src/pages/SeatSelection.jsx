@@ -344,11 +344,7 @@ const SeatSelection = () => {
                 addToast('Please sign in as a passenger to confirm your seat booking.', 'info');
                 navigate('/login', {
                   state: {
-                    bookingRedirect: {
-                      scheduleId,
-                      seatIds: ids,
-                      seatNames: selectedSeats
-                    }
+                    redirectTo: `/schedules/${scheduleId}/book?seats=${selectedSeats.join(',')}&seatIds=${ids.join(',')}`
                   }
                 });
                 return;
