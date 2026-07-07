@@ -67,9 +67,15 @@ const Login = () => {
 
         // Redirect to intended page or dashboard depending on state
         const redirectTo = location.state?.redirectTo;
+        const from = location.state?.from;
         if (redirectTo && user.role === 'ROLE_PASSENGER') {
           addToast('Login successful! Continuing booking review...', 'success');
           navigate(redirectTo, { replace: true });
+          return;
+        } else if (from && user.role === 'ROLE_PASSENGER') {
+          addToast('Login successful! Continuing booking review...', 'success');
+          const destination = from.pathname + (from.search || '');
+          navigate(destination, { replace: true });
           return;
         }
         

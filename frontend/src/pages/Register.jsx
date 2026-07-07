@@ -52,7 +52,7 @@ const Register = () => {
       const response = await authService.register(data);
       if (response.success) {
         addToast('Registration successful! Please login to continue.', 'success');
-        navigate('/login', { state: { bookingRedirect: location.state?.bookingRedirect } });
+        navigate('/login', { state: { redirectTo: location.state?.redirectTo } });
       } else {
         setBackendError(response.message || 'Registration failed.');
         addToast(response.message || 'Registration failed.', 'error');
