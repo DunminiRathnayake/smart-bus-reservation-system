@@ -105,7 +105,7 @@ class BookingService {
       totalAmount,
       bookingStatus: BookingStatus.CONFIRMED,
       paymentStatus: PaymentStatus.PAID,
-      bookingExpiresAt: null,
+      bookingExpiresAt: new Date(schedule.departureTime),
       createdBy: userId
     };
 
