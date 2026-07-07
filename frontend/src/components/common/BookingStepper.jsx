@@ -8,9 +8,8 @@ const BookingStepper = ({ currentStep = 1 }) => {
   const steps = [
     { label: 'Select Bus', icon: <Bus className="h-4 w-4 flex-shrink-0" /> },
     { label: 'Choose Seats', icon: <Armchair className="h-4 w-4 flex-shrink-0" /> },
-    { label: 'Review', icon: <FileCheck className="h-4 w-4 flex-shrink-0" /> },
-    { label: 'Pay', icon: <CreditCard className="h-4 w-4 flex-shrink-0" /> },
-    { label: 'Ticket', icon: <Ticket className="h-4 w-4 flex-shrink-0" /> }
+    { label: 'Confirm Booking', icon: <FileCheck className="h-4 w-4 flex-shrink-0" /> },
+    { label: 'Boarding Pass', icon: <Ticket className="h-4 w-4 flex-shrink-0" /> }
   ];
 
   return (

@@ -83,7 +83,7 @@ const TicketDetails = () => {
       </div>
 
       <div className="hide-on-print">
-        <BookingStepper currentStep={5} />
+        <BookingStepper currentStep={4} />
       </div>
 
       {/* Booking Confirmed Banner */}

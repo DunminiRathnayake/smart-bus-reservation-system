@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import bookingService from '../services/bookingService';
 import scheduleService from '../services/scheduleService';
+import seatService from '../services/seatService';
 import BookingStepper from '../components/common/BookingStepper';
 import BookingSidebar from '../components/common/BookingSidebar';
 import PageLoader from '../components/common/PageLoader';
@@ -33,12 +31,6 @@ const formatDate = (isoString) => {
     return String(isoString);
   }
 };
-
-const bookingSchema = z.object({
-  passengerName: z.string().min(2, 'Passenger name is required'),
-  passengerEmail: z.string().email('Please enter a valid email address'),
-  passengerPhone: z.string().min(8, 'Phone number must be at least 8 digits')
-});
 
 /**
  * Passenger details input, validation, and booking creation triggers page.
@@ -84,22 +76,29 @@ const BookingReview = () => {
     fetchSchedule();
   }, [scheduleId]);
 
-  const {
-    register: registerField,
-    handleSubmit,
-    formState: { errors }
-  } = useForm({
-    resolver: zodResolver(bookingSchema),
-    defaultValues: { passengerName: user?.fullName || '', passengerEmail: user?.email || '', passengerPhone: user?.phoneNumber || '' }
-  });
-
   const onSubmit = async () => {
     setIsSubmitting(true);
     try {
+      // Revalidate seat availability before completing the booking
+      const seatsRes = await seatService.getSeats(scheduleId);
+      if (seatsRes.success && seatsRes.data && seatsRes.data.seats) {
+        const currentSeats = seatsRes.data.seats;
+        const unavailableSelected = currentSeats.filter(
+          (s) => seatIds.includes(s._id) && s.status !== 'AVAILABLE'
+        );
+
+        if (unavailableSelected.length > 0) {
+          const seatNumbersStr = unavailableSelected.map((s) => s.seatNumber).join(', ');
+          addToast(`Seats [${seatNumbersStr}] are no longer available. Please select other seats.`, 'error');
+          navigate(`/schedules/${scheduleId}/seats`);
+          return;
+        }
+      }
+
       const payload = {
         scheduleId,
         seatIds,
-        passengerName: user?.fullName || 'Dunmini',
+        passengerName: user?.fullName || 'Passenger',
         passengerEmail: user?.email || 'passenger@smartgo.com',
         passengerPhone: user?.phoneNumber || '+94777934012'
       };
@@ -194,6 +193,11 @@ const BookingReview = () => {
         </div>
       </div>
 
+      {/* Streamlined Stepper Progress */}
+      <div className="hide-on-print">
+        <BookingStepper currentStep={3} />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Left Column: Checkout steps (2/3 width) */}
         <div className="lg:col-span-2 space-y-5">
@@ -205,7 +209,7 @@ const BookingReview = () => {
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-200">Booking Information</h3>
-                <p className="text-[10px] text-slate-500">Fill out the form below to book your seat</p>
+                <p className="text-[10px] text-slate-500">Confirm details to book your seat</p>
               </div>
             </div>
 
@@ -258,48 +262,15 @@ const BookingReview = () => {
             </div>
           </div>
 
-          {/* Step 2: Passenger Information */}
-          <div className="bg-[#18181C] border border-[#26262B] p-6 rounded-3xl shadow-xl space-y-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#5F73F2] text-white flex items-center justify-center font-bold text-sm shrink-0">
-                  2
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-200">Passenger Information</h3>
-                  <p className="text-[10px] text-slate-500">Fill out the form below and verify your identity.</p>
-                </div>
-              </div>
-              <button type="button" className="p-1 text-slate-400 hover:text-indigo-400">
-                <ChevronRight className="h-4 w-4 transform rotate-90" />
-              </button>
-            </div>
-
-            <div className="pt-2">
-              <div className="border border-slate-800 bg-slate-950/40 p-5 rounded-2xl flex items-center gap-5 shadow-inner">
-                {/* Avatar circle */}
-                <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-800 shrink-0 shadow-md">
-                  <User className="h-8 w-8 text-slate-600" />
-                </div>
-                {/* Details */}
-                <div className="space-y-1.5 text-xs text-slate-300 font-medium">
-                  <p><span className="text-slate-550 font-extrabold font-mono">Name :</span> {user?.fullName || 'Dunmini'}</p>
-                  <p><span className="text-slate-550 font-extrabold font-mono">Gender :</span> {user?.gender || 'Female'}</p>
-                  <p><span className="text-slate-550 font-extrabold font-mono">Contact :</span> {user?.phoneNumber || '+94777934012'}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Step 3: Choose Your Seat */}
+          {/* Step 2: Choose Your Seat */}
           <div className="bg-[#18181C] border border-[#26262B] p-6 rounded-3xl shadow-xl space-y-5">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-[#5F73F2] text-white flex items-center justify-center font-bold text-sm shrink-0">
-                3
+                2
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-200">Choose Your Seat</h3>
-                <p className="text-[10px] text-slate-500">Click on an available seat to select</p>
+                <p className="text-[10px] text-slate-550">Review chosen seating spaces</p>
               </div>
             </div>
 
@@ -311,18 +282,18 @@ const BookingReview = () => {
 
               <Link
                 to={`/schedules/${scheduleId}/seats`}
-                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-805 rounded-xl text-xs font-bold text-slate-300 flex items-center gap-1.5 shadow transition-all active:scale-95"
+                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-850 rounded-xl text-xs font-bold text-slate-300 flex items-center gap-1.5 shadow transition-all active:scale-95"
               >
                 Select seat <ChevronRight className="h-4 w-4 text-slate-400" />
               </Link>
             </div>
           </div>
 
-          {/* Step 4: Payment Method */}
+          {/* Step 3: Payment Method */}
           <div className="bg-[#18181C] border border-[#26262B] p-6 rounded-3xl shadow-xl space-y-5">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-[#5F73F2] text-white flex items-center justify-center font-bold text-sm shrink-0">
-                4
+                3
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-200">Payment Method</h3>
@@ -388,15 +359,15 @@ const BookingReview = () => {
 
         {/* Right Column: Summary & notices (1/3 width) */}
         <div className="space-y-6">
-          {/* Step 5: Your Booking Summary */}
+          {/* Step 4: Your Booking Summary */}
           <div className="bg-[#18181C] border border-[#26262B] p-6 rounded-3xl shadow-xl space-y-5">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-[#5F73F2] text-white flex items-center justify-center font-bold text-sm shrink-0">
-                5
+                4
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-200">Your Booking</h3>
-                <p className="text-[10px] text-slate-500">Proceed To Checkout.</p>
+                <p className="text-[10px] text-slate-500">Confirm Booking.</p>
               </div>
             </div>
 
@@ -428,16 +399,16 @@ const BookingReview = () => {
 
               {/* Action Proceed */}
               <button
-                onClick={handleSubmit(onSubmit)}
+                onClick={onSubmit}
                 className="w-full py-3.5 bg-[#5F73F2] hover:bg-[#4E61E0] rounded-xl text-xs font-black text-white flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95"
                 disabled={isSubmitting || seatNames.length === 0}
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="h-4.5 w-4.5 animate-spin" /> Confirming...
+                    <Loader2 className="h-4.5 w-4.5 animate-spin" /> Reserving...
                   </>
                 ) : (
-                  'Proceed To Checkout'
+                  'Confirm Booking'
                 )}
               </button>
             </div>
