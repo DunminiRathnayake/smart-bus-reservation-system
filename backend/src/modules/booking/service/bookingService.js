@@ -121,7 +121,7 @@ class BookingService {
       userId,
       amount: totalAmount,
       currency: 'LKR',
-      paymentMethod: 'FREE_BOOKING',
+      paymentMethod: 'ONLINE',
       gateway: 'SIMULATED',
       paymentStatus: 'SUCCESS',
       paidAt: new Date(),
