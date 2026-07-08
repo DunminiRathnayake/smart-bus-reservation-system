@@ -79,63 +79,56 @@ const Home = () => {
   const [showAlert, setShowAlert] = useState(true);
 
   return (
-    <div className="space-y-12 max-w-7xl mx-auto px-4 pb-12 text-slate-100 animate-fade-in">
+    <div className="space-y-10 text-slate-100 animate-fade-in">
       {/* Top Banner Alert - dismissable */}
       {showAlert && (
-        <div className="bg-[#18181C] border border-[#26262B] px-4 py-3 rounded-2xl flex items-center justify-between gap-4 animate-fade-in hide-on-print relative overflow-hidden">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#5F73F2]/10 text-[#5F73F2] rounded-xl shrink-0">
-              <Award className="h-5 w-5" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div className="bg-[#18181C]/95 backdrop-blur border border-[#26262B] px-4 py-3 rounded-2xl flex items-center justify-between gap-4 relative overflow-hidden shadow-2xl">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#5F73F2]/10 text-[#5F73F2] rounded-xl shrink-0">
+                <Award className="h-5 w-5" />
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                <span className="text-xs font-black text-slate-200 uppercase tracking-wider">Experience Magiya Events</span>
+                <span className="hidden sm:inline text-slate-650">|</span>
+                <span className="text-[11px] text-slate-400">Book event tickets instantly and reach your destination with Magiya.</span>
+              </div>
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-              <span className="text-xs font-black text-slate-200 uppercase tracking-wider">Experience Magiya Events</span>
-              <span className="hidden sm:inline text-slate-600">|</span>
-              <span className="text-[11px] text-slate-400">Book event tickets instantly and reach your destination with Magiya.</span>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={() => navigate('/search-bus')}
+                className="px-4 py-1.5 bg-[#5F73F2] hover:bg-[#4E61E0] text-white font-bold text-[10px] uppercase rounded-full shadow transition-all active:scale-95"
+              >
+                Try It Now
+              </button>
+              <button
+                onClick={() => setShowAlert(false)}
+                className="p-1 text-slate-550 hover:text-slate-350 transition-colors"
+                title="Dismiss notice"
+              >
+                <span className="text-base font-bold">×</span>
+              </button>
             </div>
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <button
-              onClick={() => navigate('/search-bus')}
-              className="px-4 py-1.5 bg-[#5F73F2] hover:bg-[#4E61E0] text-white font-bold text-[10px] uppercase rounded-full shadow transition-all active:scale-95"
-            >
-              Try It Now
-            </button>
-            <button
-              onClick={() => setShowAlert(false)}
-              className="p-1 text-slate-500 hover:text-slate-350 transition-colors"
-              title="Dismiss notice"
-            >
-              <span className="text-base font-bold">×</span>
-            </button>
           </div>
         </div>
       )}
 
-      {/* Hero Section Container with scenic background */}
-      <section 
-        className="relative rounded-3xl overflow-hidden min-h-[480px] flex flex-col justify-center items-center px-6 py-16 sm:py-24 text-center bg-cover bg-center border border-[#26262B] shadow-2xl"
-        style={{ 
-          backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.65) 100%), url('https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=1600&auto=format&fit=crop')` 
-        }}
-      >
-        {/* Subtle blur highlights */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 max-w-5xl mx-auto space-y-8">
+      {/* Hero Section Container (Transparent background since image is globally fixed) */}
+      <section className="relative min-h-[440px] flex flex-col justify-center items-center px-4 py-16 sm:py-20 text-center">
+        <div className="relative z-10 max-w-5xl mx-auto space-y-8 w-full">
           {/* Main Hero Header */}
           <div className="space-y-4">
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-wider leading-none text-white drop-shadow-md font-sans">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-wider leading-none text-white drop-shadow-lg font-sans">
               BOOK BUS TICKETS ONLINE <br />
               IN SRI LANKA
             </h1>
-            <p className="text-slate-300 text-xs sm:text-sm lg:text-base max-w-2xl mx-auto leading-relaxed drop-shadow">
+            <p className="text-slate-250 text-xs sm:text-sm lg:text-base max-w-2xl mx-auto leading-relaxed drop-shadow-md">
               The Simplest Way to Reserve Your Bus Tickets Online, Real-Time Seats, Secure Payments, Hassle-Free Travel
             </p>
           </div>
 
           {/* Search Pill Form Box */}
-          <div className="w-full border border-white/10 bg-black/40 backdrop-blur-md p-4 sm:p-5 rounded-3xl sm:rounded-full shadow-2xl">
+          <div className="w-full max-w-5xl mx-auto border border-white/10 bg-black/45 backdrop-blur-md p-4 sm:p-5 rounded-3xl sm:rounded-full shadow-2xl">
             <form onSubmit={handleSearch} className="flex flex-col md:flex-row items-center gap-3 w-full">
               {/* Origin station */}
               <div className="w-full md:flex-1">
@@ -204,78 +197,81 @@ const Home = () => {
           </div>
 
           {/* Subtext info */}
-          <p className="text-[10px] text-slate-400 font-semibold tracking-wide">
+          <p className="text-[10px] text-slate-350 font-semibold tracking-wide drop-shadow-sm">
             Convenient payments with all major cards and methods.
           </p>
         </div>
       </section>
 
-      {/* Popular Sri Lankan Routes Section */}
-      <section className="space-y-6">
-        <div>
-          <h2 className="text-lg font-black text-slate-100 uppercase tracking-wider">Popular Routes</h2>
-          <p className="text-[11px] text-slate-500 mt-0.5">Select from our most popular transit routes across the island.</p>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {popularRoutes.map((route, index) => (
-            <div
-              key={index}
-              onClick={() => handlePopularRouteClick(route.from, route.to)}
-              className="bg-[#18181C] border border-[#26262B] hover:border-[#5F73F2]/40 rounded-3xl p-5.5 cursor-pointer hover:-translate-y-1 transition-all duration-300 group shadow-md"
-            >
-              <div className="flex justify-between items-start mb-3">
-                <span className="text-[9px] font-bold text-[#5F73F2] bg-[#5F73F2]/10 px-2 py-0.5 border border-[#5F73F2]/20 rounded-md">
-                  {route.type}
-                </span>
-                <span className="text-xs font-mono font-bold text-slate-300">${route.fare.toFixed(2)}</span>
+      {/* Main Content wrapper */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16 w-full relative z-10">
+        {/* Popular Sri Lankan Routes Section */}
+        <section className="space-y-6">
+          <div>
+            <h2 className="text-lg font-black text-slate-100 uppercase tracking-wider">Popular Routes</h2>
+            <p className="text-[11px] text-slate-500 mt-0.5">Select from our most popular transit routes across the island.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {popularRoutes.map((route, index) => (
+              <div
+                key={index}
+                onClick={() => handlePopularRouteClick(route.from, route.to)}
+                className="bg-[#18181C]/90 backdrop-blur-sm border border-[#26262B] hover:border-[#5F73F2]/40 rounded-3xl p-5.5 cursor-pointer hover:-translate-y-1 transition-all duration-300 group shadow-md"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <span className="text-[9px] font-bold text-[#5F73F2] bg-[#5F73F2]/10 px-2 py-0.5 border border-[#5F73F2]/20 rounded-md">
+                    {route.type}
+                  </span>
+                  <span className="text-xs font-mono font-bold text-slate-300">${route.fare.toFixed(2)}</span>
+                </div>
+                <div className="text-sm font-bold text-slate-200 group-hover:text-[#5F73F2] transition-colors">
+                  {route.from} ➔ {route.to}
+                </div>
+                <div className="flex justify-between items-center text-[10px] text-slate-500 mt-4">
+                  <span>Duration: {route.duration}</span>
+                  <span className="flex items-center text-[#5F73F2] font-semibold group-hover:gap-1 transition-all">
+                    Book <ChevronRight className="h-3 w-3" />
+                  </span>
+                </div>
               </div>
-              <div className="text-sm font-bold text-slate-200 group-hover:text-[#5F73F2] transition-colors">
-                {route.from} ➔ {route.to}
-              </div>
-              <div className="flex justify-between items-center text-[10px] text-slate-500 mt-4">
-                <span>Duration: {route.duration}</span>
-                <span className="flex items-center text-[#5F73F2] font-semibold group-hover:gap-1 transition-all">
-                  Book <ChevronRight className="h-3 w-3" />
-                </span>
-              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Premium UX Features Grid */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-slate-850 pt-12">
+          <div className="bg-[#18181C]/80 backdrop-blur-sm border border-slate-850/40 rounded-3xl p-6 space-y-4 shadow-sm">
+            <div className="p-3 bg-emerald-500/10 text-emerald-400 w-fit rounded-2xl">
+              <Users className="h-6 w-6" />
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Premium UX Features Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-slate-850 pt-12">
-        <div className="bg-slate-900/20 border border-slate-850/40 rounded-3xl p-6 space-y-4">
-          <div className="p-3 bg-emerald-500/10 text-emerald-400 w-fit rounded-2xl">
-            <Users className="h-6 w-6" />
+            <h3 className="text-xs font-extrabold text-slate-200 uppercase tracking-wider">Interactive Seat Selection</h3>
+            <p className="text-slate-500 text-[11px] leading-relaxed">
+              Select exact window or aisle seats dynamically on our graphical seating layout map before confirming coordinates.
+            </p>
           </div>
-          <h3 className="text-xs font-extrabold text-slate-200 uppercase tracking-wider">Interactive Seat Selection</h3>
-          <p className="text-slate-500 text-[11px] leading-relaxed">
-            Select exact window or aisle seats dynamically on our graphical seating layout map before confirming coordinates.
-          </p>
-        </div>
 
-        <div className="bg-slate-900/20 border border-slate-850/40 rounded-3xl p-6 space-y-4">
-          <div className="p-3 bg-teal-500/10 text-teal-400 w-fit rounded-2xl">
-            <CreditCard className="h-6 w-6" />
+          <div className="bg-[#18181C]/80 backdrop-blur-sm border border-slate-850/40 rounded-3xl p-6 space-y-4 shadow-sm">
+            <div className="p-3 bg-teal-500/10 text-teal-400 w-fit rounded-2xl">
+              <CreditCard className="h-6 w-6" />
+            </div>
+            <h3 className="text-xs font-extrabold text-slate-200 uppercase tracking-wider">Secure Digital Checkout</h3>
+            <p className="text-slate-500 text-[11px] leading-relaxed">
+              Fast, secure digital payment processing. Receive immediate booking confirmation and seat assignment tickets.
+            </p>
           </div>
-          <h3 className="text-xs font-extrabold text-slate-200 uppercase tracking-wider">Secure Digital Checkout</h3>
-          <p className="text-slate-500 text-[11px] leading-relaxed">
-            Fast, secure digital payment processing. Receive immediate booking confirmation and seat assignment tickets.
-          </p>
-        </div>
 
-        <div className="bg-slate-900/20 border border-slate-850/40 rounded-3xl p-6 space-y-4">
-          <div className="p-3 bg-indigo-500/10 text-indigo-400 w-fit rounded-2xl">
-            <QrCode className="h-6 w-6" />
+          <div className="bg-[#18181C]/80 backdrop-blur-sm border border-slate-850/40 rounded-3xl p-6 space-y-4 shadow-sm">
+            <div className="p-3 bg-indigo-500/10 text-indigo-400 w-fit rounded-2xl">
+              <QrCode className="h-6 w-6" />
+            </div>
+            <h3 className="text-xs font-extrabold text-slate-200 uppercase tracking-wider">QR Digital Boarding Passes</h3>
+            <p className="text-slate-500 text-[11px] leading-relaxed">
+              Frictionless ticket check-in. Store your digital boarding pass code on your phone or print invoice logs instantly.
+            </p>
           </div>
-          <h3 className="text-xs font-extrabold text-slate-200 uppercase tracking-wider">QR Digital Boarding Passes</h3>
-          <p className="text-slate-500 text-[11px] leading-relaxed">
-            Frictionless ticket check-in. Store your digital boarding pass code on your phone or print invoice logs instantly.
-          </p>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 };

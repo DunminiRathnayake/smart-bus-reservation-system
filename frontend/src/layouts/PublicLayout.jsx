@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Bus, LogIn, User } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -9,11 +9,23 @@ import { useAuth } from '../hooks/useAuth';
 const PublicLayout = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
+  const bgStyle = isHomePage 
+    ? { 
+        backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.75) 100%), url('https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=1600&auto=format&fit=crop')`,
+        backgroundAttachment: 'fixed'
+      }
+    : {};
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100 font-sans">
+    <div 
+      className={`flex flex-col min-h-screen bg-slate-950 text-slate-100 font-sans ${isHomePage ? 'bg-cover bg-center bg-no-repeat' : ''}`}
+      style={bgStyle}
+    >
       {/* Top Header */}
-      <header className="sticky top-0 z-50 border-b border-slate-900 bg-slate-950/90 backdrop-blur-md">
+      <header className={`sticky top-0 z-50 border-b ${isHomePage ? 'border-white/5 bg-slate-950/30' : 'border-slate-900 bg-slate-950/90'} backdrop-blur-md`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2 group">
             <span className="text-2xl font-extrabold tracking-tighter text-slate-100 font-mono italic">
@@ -55,12 +67,12 @@ const PublicLayout = () => {
       </header>
 
       {/* Main Outlet */}
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <main className={isHomePage ? 'flex-grow w-full' : 'flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full'}>
         <Outlet />
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950/40">
+      <footer className={`border-t ${isHomePage ? 'border-white/5 bg-black/30' : 'border-slate-900 bg-slate-950/40'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 gap-4">
           <p>© {new Date().getFullYear()} SmartGo Reservation System. All rights reserved.</p>
           <div className="flex space-x-6">
