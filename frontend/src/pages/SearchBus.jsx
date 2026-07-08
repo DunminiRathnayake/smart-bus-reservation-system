@@ -192,7 +192,7 @@ const SearchBus = () => {
 
     window.leafletMapInstance = map;
 
-    // Satellite view matching Magiya theme
+    // Satellite view matching SmartGo theme
     window.L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       attribution: '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS'
     }).addTo(map);
@@ -366,7 +366,7 @@ const SearchBus = () => {
       {/* Stepper progress indicator */}
       <BookingStepper currentStep={1} />
 
-      {/* Main Search Panel - Magiya style */}
+      {/* Main Search Panel - SmartGo style */}
       <div className="bg-slate-900 border border-slate-850 p-6 sm:p-8 rounded-3xl shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
         
@@ -523,7 +523,7 @@ const SearchBus = () => {
         )}
       </div>
 
-      {/* Date Carousel Slider - Magiya style */}
+      {/* Date Carousel Slider - SmartGo style */}
       {hasSearched && carouselDates.length > 0 && (
         <div className="flex items-center justify-between bg-slate-900/40 border border-slate-850 p-2.5 rounded-2xl max-w-4xl mx-auto shadow-lg mb-6">
           <button
@@ -604,7 +604,7 @@ const SearchBus = () => {
                     key={String(schedule._id)}
                     className="bg-[#18181C] border border-[#26262B] rounded-3xl p-5 sm:p-6 transition-all duration-300 shadow-xl flex flex-col gap-4.5 relative overflow-hidden"
                   >
-                    {/* Header: Magiya Style (Kandy - Colombo NCG Express • Super Luxury) */}
+                    {/* Header: SmartGo Style (Kandy - Colombo NCG Express • Super Luxury) */}
                     <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/40">
                       <div className="flex flex-wrap items-center gap-2 text-sm">
                         <span className="font-extrabold text-slate-100">
@@ -618,7 +618,7 @@ const SearchBus = () => {
                         </div>
                       </div>
                       
-                      {/* Rating Label (Magiya style 0.0 star badge) */}
+                      {/* Rating Label (SmartGo style 0.0 star badge) */}
                       <div className="text-xs font-bold text-yellow-500 flex items-center gap-1">
                         <span>0.0</span>
                         <span className="text-[10px] text-yellow-600">★</span>

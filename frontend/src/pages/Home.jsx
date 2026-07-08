@@ -89,9 +89,9 @@ const Home = () => {
                 <Award className="h-5 w-5" />
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                <span className="text-xs font-black text-slate-200 uppercase tracking-wider">Experience Magiya Events</span>
+                <span className="text-xs font-black text-slate-200 uppercase tracking-wider">Experience SmartGo Events</span>
                 <span className="hidden sm:inline text-slate-650">|</span>
-                <span className="text-[11px] text-slate-400">Book event tickets instantly and reach your destination with Magiya.</span>
+                <span className="text-[11px] text-slate-400">Book event tickets instantly and reach your destination with SmartGo.</span>
               </div>
             </div>
             <div className="flex items-center gap-3 shrink-0">
