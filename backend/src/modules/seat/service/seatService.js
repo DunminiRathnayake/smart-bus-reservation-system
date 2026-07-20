@@ -44,36 +44,40 @@ class SeatService {
     // 3. Generate seats dynamically based on bus capacity
     const capacity = bus.capacity;
     const seats = [];
-    const columns = ['A', 'B', 'C', 'D'];
-    let seatCount = 0;
-    let rowNum = 1;
 
-    while (seatCount < capacity) {
-      for (let colIdx = 0; colIdx < columns.length; colIdx++) {
-        if (seatCount >= capacity) break;
-        const colLetter = columns[colIdx];
-        const seatNumber = `${rowNum}${colLetter}`;
-        
-        let seatType = SeatType.MIDDLE;
-        if (colLetter === 'A' || colLetter === 'D') {
+    for (let N = 1; N <= capacity; N++) {
+      let rowNum, colLetter, seatType;
+      if (N === 49) {
+        rowNum = 12;
+        colLetter = 'E'; // Center Back
+        seatType = SeatType.MIDDLE;
+      } else {
+        rowNum = Math.floor((N - 1) / 4) + 1;
+        const rem = (N - 1) % 4;
+        if (rem === 0) {
+          colLetter = 'D'; // Right Window
           seatType = SeatType.WINDOW;
-        } else if (colLetter === 'B' || colLetter === 'C') {
+        } else if (rem === 1) {
+          colLetter = 'C'; // Right Aisle
+          seatType = SeatType.AISLE;
+        } else if (rem === 2) {
+          colLetter = 'A'; // Left Window
+          seatType = SeatType.WINDOW;
+        } else if (rem === 3) {
+          colLetter = 'B'; // Left Aisle
           seatType = SeatType.AISLE;
         }
-
-        seats.push({
-          scheduleId,
-          seatNumber,
-          row: rowNum.toString(),
-          column: colLetter,
-          deck: 1,
-          seatType,
-          status: SeatStatus.AVAILABLE
-        });
-        
-        seatCount++;
       }
-      rowNum++;
+
+      seats.push({
+        scheduleId,
+        seatNumber: N.toString(),
+        row: rowNum.toString(),
+        column: colLetter,
+        deck: 1,
+        seatType,
+        status: SeatStatus.AVAILABLE
+      });
     }
 
     return await seatRepository.createMany(seats);

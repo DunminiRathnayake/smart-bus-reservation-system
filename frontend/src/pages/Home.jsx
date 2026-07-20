@@ -11,7 +11,9 @@ import {
   CreditCard,
   QrCode,
   Users,
-  Award
+  Award,
+  Clock,
+  ArrowRight
 } from 'lucide-react';
 
 const Home = () => {
@@ -85,7 +87,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
           <div className="bg-[#18181C]/95 backdrop-blur border border-[#26262B] px-4 py-3 rounded-2xl flex items-center justify-between gap-4 relative overflow-hidden shadow-2xl">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#5F73F2]/10 text-[#5F73F2] rounded-xl shrink-0">
+              <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl shrink-0">
                 <Award className="h-5 w-5" />
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
@@ -97,7 +99,7 @@ const Home = () => {
             <div className="flex items-center gap-3 shrink-0">
               <button
                 onClick={() => navigate('/search-bus')}
-                className="px-4 py-1.5 bg-[#5F73F2] hover:bg-[#4E61E0] text-white font-bold text-[10px] uppercase rounded-full shadow transition-all active:scale-95"
+                className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] uppercase rounded-full shadow transition-all active:scale-95"
               >
                 Try It Now
               </button>
@@ -135,7 +137,7 @@ const Home = () => {
                 <select
                   value={origin}
                   onChange={(e) => setOrigin(e.target.value)}
-                  className="w-full bg-[#18181C]/90 hover:bg-[#1C1C22]/90 border border-slate-800 focus:border-[#5F73F2] rounded-2xl sm:rounded-full py-3.5 px-5 text-xs text-slate-200 focus:outline-none transition-all cursor-pointer appearance-none"
+                  className="w-full bg-[#18181C]/90 hover:bg-[#1C1C22]/90 border border-slate-800 focus:border-emerald-500 rounded-2xl sm:rounded-full py-3.5 px-5 text-xs text-slate-200 focus:outline-none transition-all cursor-pointer appearance-none"
                   required
                 >
                   <option value="">From</option>
@@ -150,7 +152,7 @@ const Home = () => {
                 <select
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
-                  className="w-full bg-[#18181C]/90 hover:bg-[#1C1C22]/90 border border-slate-800 focus:border-[#5F73F2] rounded-2xl sm:rounded-full py-3.5 px-5 text-xs text-slate-200 focus:outline-none transition-all cursor-pointer appearance-none"
+                  className="w-full bg-[#18181C]/90 hover:bg-[#1C1C22]/90 border border-slate-800 focus:border-emerald-500 rounded-2xl sm:rounded-full py-3.5 px-5 text-xs text-slate-200 focus:outline-none transition-all cursor-pointer appearance-none"
                   required
                 >
                   <option value="">To</option>
@@ -181,7 +183,7 @@ const Home = () => {
                       console.warn('showPicker not supported:', err);
                     }
                   }}
-                  className="w-full bg-[#18181C]/90 border border-slate-800 focus:border-[#5F73F2] rounded-2xl sm:rounded-full py-3.5 px-5 text-xs text-slate-350 focus:outline-none transition-all cursor-pointer"
+                  className="w-full bg-[#18181C]/90 border border-slate-800 focus:border-emerald-500 rounded-2xl sm:rounded-full py-3.5 px-5 text-xs text-slate-355 focus:outline-none transition-all cursor-pointer"
                   required
                 />
               </div>
@@ -189,7 +191,7 @@ const Home = () => {
               {/* Search button */}
               <button
                 type="submit"
-                className="w-full md:w-auto px-8 py-3.5 bg-[#0066cc] hover:bg-[#0052a3] text-white font-black text-xs uppercase tracking-wider rounded-2xl sm:rounded-full flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all transform active:scale-95 shrink-0"
+                className="w-full md:w-auto px-8 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs uppercase tracking-wider rounded-2xl sm:rounded-full flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all transform active:scale-95 shrink-0"
               >
                 <Search className="h-4 w-4" /> Search
               </button>
@@ -217,21 +219,37 @@ const Home = () => {
               <div
                 key={index}
                 onClick={() => handlePopularRouteClick(route.from, route.to)}
-                className="bg-[#18181C]/90 backdrop-blur-sm border border-[#26262B] hover:border-[#5F73F2]/40 rounded-3xl p-5.5 cursor-pointer hover:-translate-y-1 transition-all duration-300 group shadow-md"
+                className="bg-[#18181C]/90 backdrop-blur-sm border border-[#26262B] hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/5 rounded-3xl p-5 cursor-pointer hover:-translate-y-1 transition-all duration-300 group shadow-md"
               >
-                <div className="flex justify-between items-start mb-3">
-                  <span className="text-[9px] font-bold text-[#5F73F2] bg-[#5F73F2]/10 px-2 py-0.5 border border-[#5F73F2]/20 rounded-md">
+                <div className="flex justify-between items-center mb-4">
+                  <span className={`text-[10px] font-extrabold px-2.5 py-1 border rounded-xl tracking-wide uppercase ${
+                    route.type === 'HIGHWAY' 
+                      ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' 
+                      : 'text-sky-400 bg-sky-500/10 border-sky-500/20'
+                  }`}>
                     {route.type}
                   </span>
-                  <span className="text-xs font-mono font-bold text-slate-300">${route.fare.toFixed(2)}</span>
+                  <div className="text-right">
+                    <span className="text-[10px] text-slate-550 block leading-none font-semibold uppercase tracking-wider mb-0.5">Fare</span>
+                    <span className="text-sm font-bold text-slate-200 group-hover:text-emerald-400 transition-colors">${route.fare.toFixed(2)}</span>
+                  </div>
                 </div>
-                <div className="text-sm font-bold text-slate-200 group-hover:text-[#5F73F2] transition-colors">
-                  {route.from} ➔ {route.to}
+
+                <div className="space-y-1 my-4">
+                  <div className="text-[10px] text-slate-550 uppercase tracking-widest font-semibold">Route</div>
+                  <div className="flex items-center gap-2 text-base font-black text-slate-100 group-hover:text-emerald-300 transition-colors">
+                    <span>{route.from}</span>
+                    <ArrowRight className="h-4 w-4 text-slate-600 group-hover:text-emerald-400 transition-colors shrink-0" />
+                    <span>{route.to}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center text-[10px] text-slate-500 mt-4">
-                  <span>Duration: {route.duration}</span>
-                  <span className="flex items-center text-[#5F73F2] font-semibold group-hover:gap-1 transition-all">
-                    Book <ChevronRight className="h-3 w-3" />
+
+                <div className="flex justify-between items-center text-[11px] text-slate-400 border-t border-[#26262B] pt-4 mt-2">
+                  <span className="flex items-center gap-1.5 text-slate-500">
+                    <Clock className="h-3.5 w-3.5" /> {route.duration}
+                  </span>
+                  <span className="flex items-center gap-0.5 text-emerald-400 group-hover:text-emerald-300 font-bold tracking-wide uppercase text-[10px]">
+                    Reserve <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </span>
                 </div>
               </div>
@@ -251,7 +269,7 @@ const Home = () => {
             </p>
           </div>
 
-          <div className="bg-[#18181C]/80 backdrop-blur-sm border border-slate-850/40 rounded-3xl p-6 space-y-4 shadow-sm">
+          <div className="bg-[#18181C]/80 backdrop-blur-sm border border-slate-855 rounded-3xl p-6 space-y-4 shadow-sm">
             <div className="p-3 bg-teal-500/10 text-teal-400 w-fit rounded-2xl">
               <CreditCard className="h-6 w-6" />
             </div>
@@ -261,8 +279,8 @@ const Home = () => {
             </p>
           </div>
 
-          <div className="bg-[#18181C]/80 backdrop-blur-sm border border-slate-850/40 rounded-3xl p-6 space-y-4 shadow-sm">
-            <div className="p-3 bg-indigo-500/10 text-indigo-400 w-fit rounded-2xl">
+          <div className="bg-[#18181C]/80 backdrop-blur-sm border border-slate-855 rounded-3xl p-6 space-y-4 shadow-sm">
+            <div className="p-3 bg-emerald-500/10 text-emerald-400 w-fit rounded-2xl">
               <QrCode className="h-6 w-6" />
             </div>
             <h3 className="text-xs font-extrabold text-slate-200 uppercase tracking-wider">QR Digital Boarding Passes</h3>

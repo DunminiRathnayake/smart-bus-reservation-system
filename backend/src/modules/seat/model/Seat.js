@@ -54,6 +54,11 @@ const seatSchema = new mongoose.Schema(
       ref: 'User',
       default: null
     },
+    gender: {
+      type: String,
+      enum: ['MALE', 'FEMALE'],
+      default: null
+    },
     bookingId: {
       type: mongoose.Schema.Types.ObjectId,
       default: null

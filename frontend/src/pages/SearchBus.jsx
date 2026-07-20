@@ -210,7 +210,7 @@ const SearchBus = () => {
       destMarker.bindPopup(`<b>End</b>: ${filters.destination}`);
 
       const polyline = window.L.polyline([mapOrigin, mapDest], {
-        color: '#5F73F2', // Solid periwinkle-blue connector
+        color: '#10b981', // Solid emerald connector
         weight: 4,
         opacity: 0.8,
         dashArray: '8, 8'
@@ -550,7 +550,7 @@ const SearchBus = () => {
                   onClick={() => handleCarouselDateSelect(date)}
                   className={`px-5 py-2 rounded-xl text-center transition-all min-w-[100px] border ${
                     isSelected
-                      ? 'bg-[#5F73F2] border-[#5F73F2] text-white font-bold shadow-md shadow-indigo-500/20'
+                      ? 'bg-emerald-500 border-emerald-500 text-white font-bold shadow-md shadow-emerald-500/20'
                       : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'
                   }`}
                 >
@@ -629,7 +629,7 @@ const SearchBus = () => {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center py-1">
                       {/* Departure Block */}
                       <div className="space-y-1.5">
-                        <p className="text-2xl font-black text-indigo-400 tracking-tight font-mono">{formatTime(schedule.departureTime)}</p>
+                        <p className="text-2xl font-black text-emerald-400 tracking-tight font-mono">{formatTime(schedule.departureTime)}</p>
                         <span className="inline-block text-[8px] font-extrabold text-slate-400 bg-slate-800 px-2 py-0.5 rounded tracking-widest uppercase">DEPARTURE</span>
                         <p className="text-xs font-extrabold text-slate-200 mt-1">{schedule.routeId?.origin ? String(schedule.routeId.origin) : ''}</p>
                         <p className="text-[9px] text-slate-500 font-semibold">{formatDate(schedule.departureTime)}</p>
@@ -647,7 +647,7 @@ const SearchBus = () => {
 
                       {/* Arrival Block */}
                       <div className="space-y-1.5 md:pl-4">
-                        <p className="text-2xl font-black text-indigo-400 tracking-tight font-mono">{formatTime(schedule.arrivalTime)}</p>
+                        <p className="text-2xl font-black text-emerald-400 tracking-tight font-mono">{formatTime(schedule.arrivalTime)}</p>
                         <span className="inline-block text-[8px] font-extrabold text-slate-400 bg-slate-800 px-2 py-0.5 rounded tracking-widest uppercase">ARRIVAL</span>
                         <p className="text-xs font-extrabold text-slate-200 mt-1">{schedule.routeId?.destination ? String(schedule.routeId.destination) : ''}</p>
                         <p className="text-[9px] text-slate-500 font-semibold">{formatDate(schedule.arrivalTime)}</p>
@@ -663,7 +663,7 @@ const SearchBus = () => {
                         </div>
                         <button
                           onClick={() => navigate(`/schedules/${schedule._id}/seats`)}
-                          className="w-full px-5 py-2.5 bg-[#5F73F2] hover:bg-[#4E61E0] rounded-xl text-xs font-black text-white flex items-center justify-center gap-1 shadow-lg shadow-indigo-500/20 transition-all transform active:scale-95"
+                          className="w-full px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-xs font-black text-white flex items-center justify-center gap-1 shadow-lg shadow-emerald-500/20 transition-all transform active:scale-95"
                         >
                           Book Now <ChevronRight className="h-4 w-4" />
                         </button>
@@ -679,7 +679,7 @@ const SearchBus = () => {
                             e.stopPropagation();
                             setExpandedScheduleId(expandedScheduleId === schedule._id ? null : schedule._id);
                           }}
-                          className="flex items-center gap-1 text-[11px] font-extrabold text-slate-400 hover:text-indigo-400 transition-colors bg-slate-900 border border-slate-800/80 px-3 py-1.5 rounded-full shadow-inner"
+                          className="flex items-center gap-1 text-[11px] font-extrabold text-slate-400 hover:text-emerald-400 transition-colors bg-slate-900 border border-slate-800/80 px-3 py-1.5 rounded-full shadow-inner"
                         >
                           <Info className="h-3.5 w-3.5" />
                           {expandedScheduleId === schedule._id ? 'Hide Details' : 'Details'}
@@ -689,7 +689,7 @@ const SearchBus = () => {
                             e.stopPropagation();
                             setExpandedScheduleId(expandedScheduleId === schedule._id ? null : schedule._id);
                           }}
-                          className="flex items-center gap-1 text-[11px] font-extrabold text-slate-400 hover:text-indigo-400 transition-colors bg-slate-900 border border-slate-800/80 px-3 py-1.5 rounded-full shadow-inner"
+                          className="flex items-center gap-1 text-[11px] font-extrabold text-slate-400 hover:text-emerald-400 transition-colors bg-slate-900 border border-slate-800/80 px-3 py-1.5 rounded-full shadow-inner"
                         >
                           <CalendarDays className="h-3.5 w-3.5" />
                           Timetable
@@ -709,7 +709,7 @@ const SearchBus = () => {
                         <div className="space-y-4 relative pl-5 before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-[1.5px] before:bg-slate-850">
                           {/* Start Origin */}
                           <div className="relative text-xs">
-                            <div className="absolute -left-[17px] top-1 h-2.5 w-2.5 bg-indigo-500 border border-slate-950 rounded-full" />
+                            <div className="absolute -left-[17px] top-1 h-2.5 w-2.5 bg-emerald-500 border border-slate-950 rounded-full" />
                             <span className="font-bold text-slate-300">{schedule.routeId?.origin}</span>
                             <span className="text-[10px] text-slate-500 ml-2">Departed at {formatTime(schedule.departureTime)}</span>
                           </div>
@@ -732,7 +732,7 @@ const SearchBus = () => {
 
                           {/* End Destination */}
                           <div className="relative text-xs">
-                            <div className="absolute -left-[17px] top-1 h-2.5 w-2.5 bg-indigo-500 border border-slate-950 rounded-full" />
+                            <div className="absolute -left-[17px] top-1 h-2.5 w-2.5 bg-emerald-500 border border-slate-950 rounded-full" />
                             <span className="font-bold text-slate-300">{schedule.routeId?.destination}</span>
                             <span className="text-[10px] text-slate-500 ml-2">Arriving at {formatTime(schedule.arrivalTime)}</span>
                           </div>
@@ -759,7 +759,7 @@ const SearchBus = () => {
         <div className="space-y-6">
           <div className="bg-[#18181C] border border-[#26262B] p-4.5 rounded-3xl shadow-xl space-y-4">
             <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-              <MapIcon className="h-4.5 w-4.5 text-indigo-400" /> Route Tracker Map
+              <MapIcon className="h-4.5 w-4.5 text-emerald-400" /> Route Tracker Map
             </h3>
 
             {/* Interactive Leaflet container */}

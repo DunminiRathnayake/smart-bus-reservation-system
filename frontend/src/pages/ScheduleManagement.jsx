@@ -328,7 +328,7 @@ const ScheduleManagement = () => {
       SCHEDULED: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
       BOARDING: 'bg-teal-500/10 text-teal-400 border border-teal-500/20',
       DEPARTED: 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
-      ARRIVED: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
+      ARRIVED: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
       COMPLETED: 'bg-slate-800 text-slate-400 border border-slate-750',
       CANCELLED: 'bg-red-500/10 text-red-400 border border-red-500/20'
     };
@@ -532,7 +532,7 @@ const ScheduleManagement = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-400 uppercase tracking-wider">Base Fare ($)</label>
+                  <label className="font-semibold text-slate-400 uppercase tracking-wider">Base Fare (Rs.)</label>
                   <input
                     type="number"
                     placeholder="15"
@@ -567,7 +567,7 @@ const ScheduleManagement = () => {
                   >
                     <option value="">Choose route path</option>
                     {routes.map((r) => (
-                      <option key={r._id} value={r._id}>{r.origin} ➔ {r.destination} (${r.baseFare})</option>
+                      <option key={r._id} value={r._id}>{r.origin} ➔ {r.destination} (Rs. {r.baseFare})</option>
                     ))}
                   </select>
                   {errors.routeId && <p className="text-red-400 text-[10px] mt-0.5">{errors.routeId.message}</p>}

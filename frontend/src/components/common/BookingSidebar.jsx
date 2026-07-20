@@ -95,7 +95,7 @@ const BookingSidebar = ({ schedule, selectedSeats = [] }) => {
         <div className="flex justify-between items-center text-xs">
           <span className="text-slate-400 font-medium">Price Per Seat</span>
           <span className="text-slate-200 font-mono font-bold">
-            ${baseFare.toFixed(2)}
+            Rs. {baseFare.toFixed(2)}
           </span>
         </div>
 
@@ -103,7 +103,7 @@ const BookingSidebar = ({ schedule, selectedSeats = [] }) => {
           <span className="text-xs text-slate-400 font-semibold">Total Cost</span>
           <div className="flex items-center gap-1.5 text-lg font-mono font-black text-emerald-400">
             <CreditCard className="h-4 w-4 text-emerald-500" />
-            ${totalFare.toFixed(2)}
+            Rs. {totalFare.toFixed(2)}
           </div>
         </div>
       </div>

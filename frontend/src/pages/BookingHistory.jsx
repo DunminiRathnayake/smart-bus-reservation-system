@@ -340,7 +340,7 @@ const BookingHistory = () => {
 
               <div className="border-t border-slate-850 pt-4 flex justify-between items-center text-sm font-semibold">
                 <span className="text-slate-400">Total Fare paid</span>
-                <span className="font-mono text-emerald-400 font-black">${activeDetail.totalAmount?.toFixed(2)}</span>
+                <span className="font-mono text-emerald-400 font-black">Rs. {activeDetail.totalAmount?.toFixed(2)}</span>
               </div>
             </div>
           </div>

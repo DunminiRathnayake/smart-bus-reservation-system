@@ -87,7 +87,7 @@ const AdminDashboard = () => {
     { label: 'Drivers Shift', value: `${stats.activeDrivers} / ${stats.totalDrivers}`, icon: <UserCheck className="h-5 w-5" />, desc: 'Conductors online' },
     { label: 'Active Routes', value: stats.activeRoutes, icon: <Compass className="h-5 w-5" />, desc: 'Configured route paths' },
     { label: 'Today Bookings', value: stats.todayBookings, icon: <Calendar className="h-5 w-5" />, desc: 'Reserved tickets today' },
-    { label: 'Today Revenue', value: `$${stats.todayRevenue.toFixed(2)}`, icon: <CreditCard className="h-5 w-5 text-emerald-400" />, desc: 'Today earnings' }
+    { label: 'Today Revenue', value: `Rs. ${stats.todayRevenue.toFixed(2)}`, icon: <CreditCard className="h-5 w-5 text-emerald-400" />, desc: 'Today earnings' }
   ];
 
   return (

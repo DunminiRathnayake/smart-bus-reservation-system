@@ -43,7 +43,7 @@ class BookingService {
    * @returns {Promise<Object>} The saved booking document.
    */
   async createBooking(bookingData, userId) {
-    const { scheduleId, seatIds, passengerName, passengerPhone, passengerEmail } = bookingData;
+    const { scheduleId, seatIds, passengerName, passengerPhone, passengerEmail, genders } = bookingData;
 
     // 1. Validation: Verify Schedule exists, is active, and is not in the past
     const schedule = await scheduleRepository.findById(scheduleId);
@@ -135,12 +135,16 @@ class BookingService {
       )
     );
 
-    // Also set passengerId and bookingId on the seat documents
+    // Also set passengerId, bookingId, and gender on the seat documents
     const SeatModel = require('../../seat/model/Seat');
     await Promise.all(
-      seatIds.map(seatId => 
-        SeatModel.findByIdAndUpdate(seatId, { passengerId: userId, bookingId: booking._id })
-      )
+      seatIds.map((seatId, idx) => {
+        const updateFields = { passengerId: userId, bookingId: booking._id };
+        if (genders && genders[idx]) {
+          updateFields.gender = genders[idx].toUpperCase();
+        }
+        return SeatModel.findByIdAndUpdate(seatId, updateFields);
+      })
     );
 
     // Generate ticket

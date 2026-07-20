@@ -44,6 +44,7 @@ const BookingReview = () => {
 
   const seatNames = searchParams.get('seats')?.split(',') || [];
   const seatIds = searchParams.get('seatIds')?.split(',') || [];
+  const genders = searchParams.get('genders')?.split(',') || [];
 
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -100,7 +101,8 @@ const BookingReview = () => {
         seatIds,
         passengerName: user?.fullName || 'Passenger',
         passengerEmail: user?.email || 'passenger@smartgo.com',
-        passengerPhone: user?.phoneNumber || '+94777934012'
+        passengerPhone: user?.phoneNumber || '+94777934012',
+        genders
       };
 
       const response = await bookingService.createBooking(payload);
@@ -158,9 +160,9 @@ const BookingReview = () => {
       <div className="space-y-3">
         {/* Breadcrumbs */}
         <div className="flex items-center gap-1.5 text-xs text-slate-550">
-          <Link to="/" className="hover:text-[#5F73F2] transition-colors">Home</Link>
+          <Link to="/" className="hover:text-emerald-400 transition-colors">Home</Link>
           <span>&gt;</span>
-          <Link to="/search-bus" className="hover:text-[#5F73F2] transition-colors">Journeys</Link>
+          <Link to="/search-bus" className="hover:text-emerald-400 transition-colors">Journeys</Link>
           <span>&gt;</span>
           <span className="text-slate-400 font-semibold">{schedule.routeId?.origin} - {schedule.routeId?.destination} {formatTime(schedule.departureTime)}</span>
         </div>
@@ -169,7 +171,7 @@ const BookingReview = () => {
         <div className="bg-[#18181C] border border-[#26262B] p-5 sm:p-6 rounded-3xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden">
           <div className="space-y-2">
             <h1 className="text-xl sm:text-2xl font-black text-slate-100 tracking-tight">
-              {schedule.routeId?.origin} - {schedule.routeId?.destination} <span className="text-indigo-400 font-mono">{formatTime(schedule.departureTime)}</span>
+              {schedule.routeId?.origin} - {schedule.routeId?.destination} <span className="text-emerald-400 font-mono">{formatTime(schedule.departureTime)}</span>
             </h1>
             <div className="flex flex-wrap items-center gap-2.5 text-xs text-slate-500">
               <span className="font-semibold text-slate-300">{schedule.busId?.busName || 'NCG Express'}</span>
@@ -204,7 +206,7 @@ const BookingReview = () => {
           {/* Step 1: Booking Information */}
           <div className="bg-[#18181C] border border-[#26262B] p-6 rounded-3xl shadow-xl space-y-5">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#5F73F2] text-white flex items-center justify-center font-bold text-sm shrink-0">
+              <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shrink-0">
                 1
               </div>
               <div>
@@ -227,7 +229,7 @@ const BookingReview = () => {
                   <button
                     type="button"
                     onClick={() => addToast('Travel date confirmed.', 'success')}
-                    className="px-5 py-3 bg-[#5F73F2] hover:bg-[#4E61E0] text-white font-bold text-xs rounded-xl shadow transition-colors"
+                    className="px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow transition-colors"
                   >
                     Confirm
                   </button>
@@ -244,7 +246,7 @@ const BookingReview = () => {
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Choose Pickup Location</label>
                   <select
-                    className="w-full bg-slate-950 border border-slate-855 rounded-xl py-3 px-4 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-950 border border-slate-855 rounded-xl py-3 px-4 text-xs text-slate-300 focus:outline-none focus:border-emerald-500"
                   >
                     <option>Point 1 - {schedule.routeId?.origin} ({formatTime(schedule.departureTime)})</option>
                   </select>
@@ -253,7 +255,7 @@ const BookingReview = () => {
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Choose Drop-off Location</label>
                   <select
-                    className="w-full bg-slate-950 border border-slate-855 rounded-xl py-3 px-4 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-950 border border-slate-855 rounded-xl py-3 px-4 text-xs text-slate-300 focus:outline-none focus:border-emerald-500"
                   >
                     <option>Point 36 - {schedule.routeId?.destination} ({formatTime(schedule.arrivalTime)})</option>
                   </select>
@@ -265,7 +267,7 @@ const BookingReview = () => {
           {/* Step 2: Choose Your Seat */}
           <div className="bg-[#18181C] border border-[#26262B] p-6 rounded-3xl shadow-xl space-y-5">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#5F73F2] text-white flex items-center justify-center font-bold text-sm shrink-0">
+              <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shrink-0">
                 2
               </div>
               <div>
@@ -292,7 +294,7 @@ const BookingReview = () => {
           {/* Step 3: Payment Method */}
           <div className="bg-[#18181C] border border-[#26262B] p-6 rounded-3xl shadow-xl space-y-5">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#5F73F2] text-white flex items-center justify-center font-bold text-sm shrink-0">
+              <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shrink-0">
                 3
               </div>
               <div>
@@ -302,12 +304,12 @@ const BookingReview = () => {
             </div>
 
             <div className="pt-2">
-              <div className="border border-indigo-500/30 bg-[#5F73F2]/5 p-4.5 rounded-2xl flex items-center gap-3.5 shadow-inner">
-                <div className="p-2 bg-[#5F73F2]/10 rounded-xl text-[#5F73F2]">
+              <div className="border border-emerald-500/30 bg-emerald-500/5 p-4.5 rounded-2xl flex items-center gap-3.5 shadow-inner">
+                <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-400">
                   <CreditCard className="h-5 w-5" />
                 </div>
                 <div className="space-y-0.5">
-                  <p className="text-xs font-bold text-[#5F73F2]">Pay By IPG</p>
+                  <p className="text-xs font-bold text-emerald-400">Pay By IPG</p>
                   <p className="text-[10px] text-slate-450">(For passengers who would like to pay online. Ticket auto-confirms, no actual charge.)</p>
                 </div>
               </div>
@@ -325,21 +327,21 @@ const BookingReview = () => {
               <button
                 type="button"
                 onClick={() => addToast('WhatsApp link copied.', 'success')}
-                className="py-2.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 rounded-xl text-[10px] font-bold text-slate-400 hover:text-indigo-400 transition-colors"
+                className="py-2.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 rounded-xl text-[10px] font-bold text-slate-400 hover:text-emerald-400 transition-colors"
               >
                 WhatsApp
               </button>
               <button
                 type="button"
                 onClick={() => addToast('Facebook link shared.', 'success')}
-                className="py-2.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 rounded-xl text-[10px] font-bold text-slate-400 hover:text-indigo-400 transition-colors"
+                className="py-2.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 rounded-xl text-[10px] font-bold text-slate-400 hover:text-emerald-400 transition-colors"
               >
                 Facebook
               </button>
               <button
                 type="button"
                 onClick={() => addToast('Instagram link shared.', 'success')}
-                className="py-2.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 rounded-xl text-[10px] font-bold text-slate-400 hover:text-indigo-400 transition-colors"
+                className="py-2.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 rounded-xl text-[10px] font-bold text-slate-400 hover:text-emerald-400 transition-colors"
               >
                 Instagram
               </button>
@@ -349,7 +351,7 @@ const BookingReview = () => {
                   navigator.clipboard.writeText(window.location.href);
                   addToast('Journey link copied to clipboard!', 'success');
                 }}
-                className="py-2.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 rounded-xl text-[10px] font-bold text-slate-400 hover:text-indigo-400 transition-colors"
+                className="py-2.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 rounded-xl text-[10px] font-bold text-slate-400 hover:text-emerald-400 transition-colors"
               >
                 Copy Link & Share
               </button>
@@ -362,7 +364,7 @@ const BookingReview = () => {
           {/* Step 4: Your Booking Summary */}
           <div className="bg-[#18181C] border border-[#26262B] p-6 rounded-3xl shadow-xl space-y-5">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#5F73F2] text-white flex items-center justify-center font-bold text-sm shrink-0">
+              <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shrink-0">
                 4
               </div>
               <div>
@@ -377,7 +379,7 @@ const BookingReview = () => {
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Selected Seats.</span>
                 <div className="flex flex-wrap gap-1.5">
                   {seatNames.map((s, sidx) => (
-                    <span key={sidx} className="bg-indigo-500/10 border border-indigo-500/25 px-2.5 py-1 rounded text-xs font-bold text-[#5F73F2] font-mono">
+                    <span key={sidx} className="bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-1 rounded text-xs font-bold text-emerald-400 font-mono">
                       Seat {s}
                     </span>
                   ))}
@@ -387,20 +389,20 @@ const BookingReview = () => {
               {/* Subtotal */}
               <div className="flex justify-between items-center pb-2 border-b border-slate-850/60">
                 <span className="text-xs font-extrabold text-slate-200">Sub Total ({seatNames.length} Seats)</span>
-                <span className="text-base font-black text-[#5F73F2] font-mono">
+                <span className="text-base font-black text-emerald-400 font-mono">
                   LKR {((baseFareNum || 1500) * seatNames.length).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
 
               {/* Disclaimer */}
-              <p className="text-[9px] text-slate-550 italic leading-normal">
+              <p className="text-[9px] text-slate-555 italic leading-normal">
                 🔒 Your information is never shared with third parties.
               </p>
 
               {/* Action Proceed */}
               <button
                 onClick={onSubmit}
-                className="w-full py-3.5 bg-[#5F73F2] hover:bg-[#4E61E0] rounded-xl text-xs font-black text-white flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95"
+                className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-xs font-black text-white flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95"
                 disabled={isSubmitting || seatNames.length === 0}
               >
                 {isSubmitting ? (
